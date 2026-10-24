@@ -52,6 +52,7 @@ def test_reservation_settles_exact_usage_and_releases_unused_amount(tmp_path: Pa
     assert usage["summary"]["input_tokens"] == 100
     assert usage["summary"]["output_tokens"] == 50
     assert usage["summary"]["reserved_micro_usd"] == 0
+    assert usage["items"][0]["status"] == "completed"
     assert usage["items"][0]["pricing_version"] == reservation["pricing_version"]
     assert store.settle_request(reservation["request_id"])["status"] == "settled"
     assert store.usage(auth["tenant_id"])["summary"]["cost_micro_usd"] == 500

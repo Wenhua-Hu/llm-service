@@ -726,9 +726,16 @@ class Store:
         summary: dict[str, object] = dict(totals)
         if tenant_id_value is not None:
             summary["balance_micro_usd"] = balance
+        items = [
+            {key: value for key, value in dict(row).items() if key != "created_epoch"}
+            for row in visible_rows
+        ]
+        for item in items:
+            if item["status"] == "settled":
+                item["status"] = "completed"
         return {
             "summary": summary,
-            "items": [{key: value for key, value in dict(row).items() if key != "created_epoch"} for row in visible_rows],
+            "items": items,
             "next_cursor": next_cursor,
         }
 
