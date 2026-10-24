@@ -7,7 +7,16 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115,<1",
     "httpx>=0.28,<1",
+    "pyyaml>=6,<7",
     "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+sglang = [
+    "sglang==0.5.9",
+]
+flashinfer = [
+    "flashinfer-python==0.6.3",
 ]
 
 [dependency-groups]

@@ -20,6 +20,14 @@ if [[ "${mode}" == "--stop" ]]; then
     exit 1
   fi
   pid_file="${data_dir%/}/gateway.pid"
+  state_file="${data_dir%/}/processes.json"
+  if [[ -f "${state_file}" ]]; then
+    python_bin="${BOOTSTRAP_PYTHON:-python3}"
+    if [[ -x "${PWD}/.venv/bin/python" ]]; then
+      python_bin="${PWD}/.venv/bin/python"
+    fi
+    exec "${python_bin}" -m server.supervisor stop --data-dir "${data_dir}"
+  fi
   if [[ ! -f "${pid_file}" ]]; then
     echo "No recorded gateway process to stop"
     exit 0
@@ -69,7 +77,10 @@ if [[ "${mode}" == "--contract-test" && -z "${ENGINE_BASE_URL:-}" ]]; then
   exit 1
 fi
 
-port="${PORT:-8000}"
+if [[ "${mode}" != "--contract-test" && "${BENCH_PROFILE:-baseline}" != "baseline" && "${BENCH_PROFILE:-baseline}" != "optimized" ]]; then
+  echo "BENCH_PROFILE must be baseline or optimized" >&2
+  exit 1
+fi
 
 if [[ -n "${BOOTSTRAP_PYTHON:-}" ]]; then
   python_bin="${BOOTSTRAP_PYTHON}"
@@ -87,42 +98,18 @@ if [[ -z "${data_dir}" || "${data_dir}" != /* || "${data_dir}" == "/" || "${data
   exit 1
 fi
 mkdir -p -- "${data_dir}"
-pid_file="${data_dir}/gateway.pid"
-if [[ -f "${pid_file}" ]]; then
-  read -r existing_pid < "${pid_file}"
-  if [[ "${existing_pid}" =~ ^[0-9]+$ ]] && kill -0 "${existing_pid}" 2>/dev/null; then
-    existing_command="$(ps -p "${existing_pid}" -o command= 2>/dev/null || true)"
-    if [[ "${existing_command}" == *"-m uvicorn server.app:app"* ]]; then
-      echo "llm-service gateway already running as PID ${existing_pid}"
-      exit 0
-    fi
-    echo "Refusing to replace ${pid_file}: PID ${existing_pid} belongs to another process" >&2
-    exit 1
+sync_args=(sync --frozen --no-dev --python "${python_bin}")
+if [[ "${mode}" != "--contract-test" ]]; then
+  sync_args+=(--extra sglang)
+  if [[ "${BENCH_PROFILE:-baseline}" == "optimized" ]]; then
+    sync_args+=(--extra flashinfer)
   fi
-  rm -f -- "${pid_file}"
 fi
+uv "${sync_args[@]}"
 
-uv sync --frozen --python "${python_bin}"
-"${PWD}/.venv/bin/python" -m uvicorn server.app:app \
-  --host 127.0.0.1 --port "${port}" \
-  >>"${data_dir}/gateway.log" 2>&1 &
-gateway_pid=$!
-printf '%s\n' "${gateway_pid}" > "${pid_file}"
-
-for _ in {1..100}; do
-  if ! kill -0 "${gateway_pid}" 2>/dev/null; then
-    echo "Gateway exited during startup; see ${data_dir}/gateway.log" >&2
-    rm -f -- "${pid_file}"
-    exit 1
-  fi
-  if command -v curl >/dev/null 2>&1 && curl --silent --fail "http://127.0.0.1:${port}/healthz" >/dev/null; then
-    echo "llm-service ready on port ${port} (PID ${gateway_pid})"
-    exit 0
-  fi
-  sleep 0.1
-done
-
-echo "Gateway did not become ready within 10 seconds; see ${data_dir}/gateway.log" >&2
-kill "${gateway_pid}" 2>/dev/null || true
-rm -f -- "${pid_file}"
-exit 1
+if [[ "${mode}" == "--contract-test" ]]; then
+  action=contract-test
+else
+  action=start
+fi
+exec "${PWD}/.venv/bin/python" -m server.supervisor "${action}" --data-dir "${data_dir}"

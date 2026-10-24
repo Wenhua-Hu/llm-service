@@ -13,6 +13,8 @@
 - Implemented `/agent/run` as two real engine calls around the single `lookup_order` tool, with a zero-cost parent ledger row and separately billed child rows linked by `parent_request_id`.
 - `/info` now reads SGLang `/server_info` and reports runtime version/configuration when the engine provides them, rather than claiming optimized settings from profile labels.
 - Aligned the tree toward the taskbook: added `.env.example`, `configs/`, `benchmarks/`, `experiments/`, `results/`, `scripts/`, and `agent/`; moved request gating to `server/admission.py`; extracted engine helpers, metrics, and SSE parsing/usage validation into focused `server/` modules. The SSE boundary follows the reference project's separation of stream handling from API routes.
+- Added `server/supervisor.py` and normal `setup.sh` startup for a pinned SGLang runtime and the selected profile, readiness checks, profile/config-aware idempotency, and owned process-group shutdown. The CPU `--contract-test` path still installs only the gateway dependencies and uses the supplied engine fixture.
+- Pinned SGLang 0.5.9 and FlashInfer 0.6.3 as optional runtime extras, leaving CPU-only installs free of the GPU stack; baseline and optimized launch arguments come from the project's profile files.
 - Moved Agent workflow logic to `agent/runner.py` and management endpoints to `control_plane/api.py`; kept request routing and SQLite transaction ownership in their existing layers.
 - Added explicit pending-status baseline/optimized profile files, experimental fixture pricing config, and a performance document that distinguishes frozen targets from unmeasured project results. Removed `results/` from `.gitignore` so real evidence can be committed when produced.
 
@@ -31,3 +33,22 @@
 - `/agent/run` has a controllable-engine integration test; its behavior and answer quality with real SGLang remain unverified.
 - No Daytona machine was started. SGLang deployment, optimization experiments, and GPU performance measurements remain pending.
 - Official performance gates remain the frozen taskbook values; no project result is claimed against them.
+
+## 2026-10-24 — SGLang startup wiring
+
+### Changes
+
+- Added normal `setup.sh` launch of SGLang followed by the API gateway, readiness polling, configuration-aware idempotency, logs and process identity tracking, and `--stop` cleanup. The contract-test mode remains gateway-only and uses the external CPU fixture.
+- Added optional pinned dependencies for SGLang 0.5.9 and FlashInfer 0.6.3. The baseline CPU path does not install either GPU dependency; the optimized startup selects the FlashInfer extra.
+- Added unit coverage for the profile-to-SGLang argument mapping. Profile thresholds remain explicitly pending GPU validation.
+
+### Local verification
+
+- Python 3.13 `pytest`: **47 passed**.
+- `uv lock --check --offline`: **passed**, 185 packages in the full optional runtime resolution.
+- `bash -n setup.sh` and `git diff --check`: **passed**.
+
+### Not yet verified
+
+- No Linux NVIDIA/Daytona launch has been performed. SGLang readiness, model download, profile compatibility, GPU memory use, and benchmark results remain unverified.
+- The SGLang optional runtime is large; only the CPU dependency set was synchronized locally. The GPU stack was not installed on this Mac.

@@ -12,9 +12,9 @@ Implemented locally so far:
 - incremental SSE forwarding, explicit stream errors when `[DONE]` is missing, and best-effort engine abort on an incomplete stream
 - an async bounded admission gate configured with `GATEWAY_SLOTS` and `GATEWAY_QUEUE`
 - authenticated `/metrics`, an admin console connected to tenant/key/credit/pricing/usage/audit APIs, and `/agent/run` planner → `lookup_order` → final-answer execution
-- `setup.sh --contract-test` and `setup.sh --stop` entry points
+- `setup.sh` starts a configured SGLang engine and gateway; `--contract-test` starts only the gateway against the supplied CPU fixture, and `--stop` stops project-owned processes
 
-This is an in-progress implementation, not a completed OpenLabs submission. SGLang launch/supervision, validated baseline/optimized profiles, benchmark and experiment entrypoints, GPU evidence, and official soft/GPU evaluation are still outstanding. Tenant administration, key rotation/revocation, metering, quotas, the working console, and a first Agent runner are implemented locally but still need the official checker and broader concurrency/recovery coverage.
+This is an in-progress implementation, not a completed OpenLabs submission. SGLang launch/supervision is implemented but has not yet been launched on the Daytona GPU; baseline/optimized profile values, benchmark and experiment entrypoints, GPU evidence, and official soft/GPU evaluation remain outstanding. Tenant administration, key rotation/revocation, metering, quotas, the working console, and a first Agent runner are implemented locally but still need the official checker and broader concurrency/recovery coverage.
 
 ## Project layout mapping
 
@@ -25,7 +25,7 @@ This is an in-progress implementation, not a completed OpenLabs submission. SGLa
 | Admission control | `server/admission.py` |
 | SSE event parsing, error events, usage validation | `server/streaming.py` (following the reference project's streaming boundary) |
 | Runtime metrics | `server/metrics.py` |
-| Process startup, readiness, and stop | root `setup.sh` (the taskbook's `supervisor.py` responsibility is currently in this script) |
+| Process startup, readiness, and stop | `setup.sh` delegates owned engine/gateway process lifecycle to `server/supervisor.py` |
 | Tenant, key, quota, billing, usage, migration recovery | `control_plane/storage.py` (these concerns are not yet split into separate modules) |
 | Admin web console and schema | `console/`, `migrations/` |
 | Agent planning, whitelisted tool, final answer | `agent/runner.py`; `/agent/run` route in `server/app.py` delegates to it |
@@ -75,9 +75,26 @@ bash setup.sh --stop
 
 Configuration is read from environment variables. `--contract-test` requires the
 external CPU fixture URL in `ENGINE_BASE_URL`; it must not start SGLang or download
-weights. `--stop` only considers the recorded gateway PID and refuses to stop a
-process it cannot identify as this service. Secrets must not be committed to this
-repository.
+weights. Normal startup installs the pinned SGLang runtime; the `optimized`
+profile also installs the pinned FlashInfer extra. It downloads model weights on
+first engine launch. Use a Linux NVIDIA GPU host for this path; the profile values
+are still unvalidated until the Daytona run. Set `HOST=0.0.0.0` only when the API
+should accept connections from outside the machine. `DATA_DIR` stores logs, PID
+identity, and the SQLite ledger and is retained by `--stop`. Secrets must not be
+committed to this repository.
+
+For a normal SGLang-backed launch, set the required API key, key-hash secret,
+model ID/revision and a dedicated absolute data directory, then run:
+
+```bash
+export API_KEY=local-development-key
+export KEY_HASH_SECRET=local-development-pepper-32-bytes-minimum
+export DATA_DIR="$PWD/.local-state"
+export MODEL_ID=Qwen/Qwen2.5-7B-Instruct
+export MODEL_REVISION=a09a35458c702b33eeacc393d103063234e8bc28
+# Optional: baseline (default) or optimized; expose the API beyond localhost with HOST=0.0.0.0
+bash setup.sh
+```
 
 The local test suite can be run with:
 
