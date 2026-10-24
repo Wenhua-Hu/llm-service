@@ -549,8 +549,8 @@ class Store:
                     "error_code": "usage_exceeds_reservation",
                 }
             database.execute(
-                "UPDATE tenants SET balance_micro_usd=balance_micro_usd-?+? WHERE tenant_id=?",
-                (request["reserved_micro_usd"], cost, request["tenant_id"]),
+                "UPDATE tenants SET balance_micro_usd=balance_micro_usd-? WHERE tenant_id=?",
+                (cost, request["tenant_id"]),
             )
             database.execute(
                 """UPDATE requests SET status='settled',cost_micro_usd=?,
