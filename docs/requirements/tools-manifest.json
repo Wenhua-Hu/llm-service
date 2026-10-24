@@ -1,0 +1,15 @@
+{
+  "schema": "llm-public-tools/1",
+  "workload_version": "typed-json-numbered-records-prose-exact-input/5",
+  "files_sha256": {
+    "selftest.py": "83027dae25f3aa05fe6f652853388e98e6eb03b2bdffbc969a1569d07041c950",
+    "serving_benchmark.py": "e0526d1a67995f9806f8f6624c55a8c81f71323230da60290ce8086ca8bc539e",
+    "measurement.py": "66ec7afbfe8c9ab3165191616f35446fb697d240ca7bead1d1b77b59a0e33a25",
+    "acceptance.json": "d5cd2fdc90056e710cf741ac1eec4c5b042ea3818d505e4a3975697f1df9241f",
+    "prose_workload.py": "7b4e11fd9415009bee865442c4a4f5f4c66cee21e9e44dd02626da821825ab07",
+    "prose-bank.txt": "84e28c0006bf3fb30049caaa505cf2bd2f3e2ea5d9f1f34a190ba2aa4936dcbf",
+    "acceptance-v3.pending.json": "1fc7935bcfbcd22da159a2834c5db06ca6e8a665a04e56e0d5ce1661679f3fae",
+    "acceptance-v4.pending.json": "714c9a1e16e8f36ec239e635b2a50b01f6a09795730a952d294be1803bc921cc",
+    "acceptance-v5.pending.json": "6dac73bcc71d9ca45db9085e1f7b68f2fc763638ed5cdbf216b859d08f686c96"
+  }
+}

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LLM Service Console</title>
+  <style>
+    :root { color-scheme: light dark; font: 15px/1.45 system-ui, sans-serif; }
+    body { max-width: 1080px; margin: 2rem auto; padding: 0 1rem; }
+    h1, h2 { line-height: 1.2; }
+    section { border: 1px solid #8886; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+    label { display: inline-grid; gap: .25rem; margin: .3rem .5rem .3rem 0; }
+    input, button { font: inherit; padding: .45rem .6rem; }
+    button { cursor: pointer; margin: .2rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: .7rem; }
+    th, td { border-bottom: 1px solid #8886; padding: .45rem; text-align: left; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+    #status { min-height: 1.5rem; }
+    .muted { opacity: .75; }
+  </style>
+</head>
+<body>
+  <h1>LLM Service Console</h1>
+  <p class="muted">Experimental usage ledger only; this is not payment processing or a Daytona budget display.</p>
+  <section>
+    <h2>Administrator access</h2>
+    <label>Admin API key <input id="adminKey" type="password" autocomplete="off"></label>
+    <button id="connect">Connect</button>
+    <p id="status" role="status"></p>
+  </section>
+  <section>
+    <h2>Tenants</h2>
+    <form id="tenantForm">
+      <label>Name <input name="name" required></label>
+      <label>Initial balance (micro-USD) <input name="balance_micro_usd" type="number" min="0" value="10000" required></label>
+      <label>Token limit <input name="token_limit" type="number" min="0" value="100000" required></label>
+      <label>RPM limit <input name="rpm_limit" type="number" min="0" value="60" required></label>
+      <label>Concurrency limit <input name="concurrency_limit" type="number" min="1" value="4" required></label>
+      <button>Create tenant</button>
+    </form>
+    <div id="tenants"></div>
+  </section>
+  <section>
+    <h2>Selected tenant actions</h2>
+    <label>Tenant <select id="tenantSelect"><option value="">Select a tenant</option></select></label>
+    <label>Key name <input id="keyName" value="Agent key"></label>
+    <button id="createKey">Create key</button>
+    <label>Credit adjustment (micro-USD) <input id="creditDelta" type="number" value="1000"></label>
+    <label>Reason <input id="creditReason" value="manual test adjustment"></label>
+    <button id="addCredits">Adjust balance</button>
+    <button id="loadUsage">View usage</button>
+    <button id="loadAudit">View audit</button>
+    <pre id="oneTimeKey" aria-live="polite"></pre>
+    <pre id="usage"></pre>
+    <pre id="audit"></pre>
+    <div id="keys"></div>
+  </section>
+  <section>
+    <h2>Model pricing</h2>
+    <label>Model <input id="model" value="local-model"></label>
+    <label>Input micro-USD / token <input id="inputPrice" type="number" min="0" value="2"></label>
+    <label>Output micro-USD / token <input id="outputPrice" type="number" min="0" value="6"></label>
+    <button id="savePricing">Save new price version</button>
+    <pre id="pricing"></pre>
+  </section>
+<script>
+  let adminKey = '';
+  let tenants = [];
+  const statusNode = document.getElementById('status');
+  const setStatus = (text) => { statusNode.textContent = text; };
+  async function api(path, options = {}) {
+    const response = await fetch(path, {
+      ...options,
+      headers: { 'Authorization': `Bearer ${adminKey}`, 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    const text = await response.text();
+    let data = null;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    if (!response.ok) throw new Error(data?.error?.message || `HTTP ${response.status}`);
+    return data;
+  }
+  function cell(row, value) { const td = document.createElement('td'); td.textContent = value == null ? '—' : String(value); row.append(td); }
+  async function loadTenants() {
+    const result = await api('/admin/tenants');
+    tenants = result.items || [];
+    const select = document.getElementById('tenantSelect');
+    const selected = select.value;
+    select.replaceChildren(new Option('Select a tenant', ''));
+    for (const tenant of tenants) select.add(new Option(`${tenant.name} · ${tenant.tenant_id}`, tenant.tenant_id));
+    select.value = selected;
+    const table = document.createElement('table');
+    const head = document.createElement('tr');
+    for (const label of ['Tenant', 'Status', 'Balance (micro-USD)', 'Used / reserved tokens', 'Actions']) {
+      const th = document.createElement('th'); th.textContent = label; head.append(th);
+    }
+    table.append(head);
+    for (const tenant of tenants) {
+      const row = document.createElement('tr');
+      cell(row, `${tenant.name} (${tenant.tenant_id})`); cell(row, tenant.status);
+      cell(row, tenant.balance_micro_usd); cell(row, `${tenant.used_tokens} / ${tenant.reserved_tokens}`);
+      const actions = document.createElement('td');
+      const toggle = document.createElement('button');
+      toggle.textContent = tenant.status === 'active' ? 'Disable' : 'Enable';
+      toggle.onclick = async () => {
+        try { await api(`/admin/tenants/${encodeURIComponent(tenant.tenant_id)}`, { method: 'PATCH', body: JSON.stringify({ status: tenant.status === 'active' ? 'disabled' : 'active' }) }); await loadTenants(); }
+        catch (error) { setStatus(error.message); }
+      };
+      const keys = document.createElement('button'); keys.textContent = 'Keys'; keys.onclick = () => { document.getElementById('tenantSelect').value = tenant.tenant_id; loadKeys(); };
+      actions.append(toggle, keys); row.append(actions); table.append(row);
+    }
+    document.getElementById('tenants').replaceChildren(table);
+  }
+  async function loadKeys() {
+    const tenant = document.getElementById('tenantSelect').value;
+    if (!tenant) return;
+    const result = await api(`/admin/tenants/${encodeURIComponent(tenant)}/keys`);
+    const table = document.createElement('table');
+    for (const key of result.items || []) {
+      const row = document.createElement('tr');
+      cell(row, key.name); cell(row, key.key_id); cell(row, key.masked_key); cell(row, key.status); cell(row, key.expires_at);
+      const actions = document.createElement('td');
+      if (key.status === 'active') {
+        for (const [label, action] of [['Rotate', 'rotate'], ['Revoke', 'revoke']]) {
+          const button = document.createElement('button'); button.textContent = label;
+          button.onclick = async () => {
+            try {
+              const result = await api(`/admin/keys/${encodeURIComponent(key.key_id)}/${action}`, { method: 'POST', body: '{}' });
+              if (result.api_key) document.getElementById('oneTimeKey').textContent = `Copy this key now; it will not be shown again:\n${result.api_key}`;
+              await loadKeys(); await loadTenants();
+            } catch (error) { setStatus(error.message); }
+          };
+          actions.append(button);
+        }
+      }
+      row.append(actions); table.append(row);
+    }
+    document.getElementById('keys').replaceChildren(table);
+  }
+  document.getElementById('connect').onclick = async () => {
+    adminKey = document.getElementById('adminKey').value;
+    try { await loadTenants(); const price = await api('/admin/pricing'); document.getElementById('model').value = price.model; document.getElementById('inputPrice').value = price.input_micro_usd_per_token; document.getElementById('outputPrice').value = price.output_micro_usd_per_token; document.getElementById('pricing').textContent = JSON.stringify(price, null, 2); setStatus('Connected. The key is kept only in this page memory.'); }
+    catch (error) { adminKey = ''; setStatus(error.message); }
+  };
+  document.getElementById('tenantForm').onsubmit = async (event) => {
+    event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget));
+    for (const key of ['balance_micro_usd', 'token_limit', 'rpm_limit', 'concurrency_limit']) values[key] = Number(values[key]);
+    try { const created = await api('/admin/tenants', { method: 'POST', body: JSON.stringify(values) }); await loadTenants(); document.getElementById('tenantSelect').value = created.tenant_id; setStatus('Tenant created.'); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('createKey').onclick = async () => {
+    const tenant = document.getElementById('tenantSelect').value; if (!tenant) return setStatus('Select a tenant first.');
+    try { const result = await api(`/admin/tenants/${encodeURIComponent(tenant)}/keys`, { method: 'POST', body: JSON.stringify({ name: document.getElementById('keyName').value }) }); document.getElementById('oneTimeKey').textContent = `Copy this key now; it will not be shown again:\n${result.api_key}`; await loadKeys(); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('addCredits').onclick = async () => {
+    const tenant = document.getElementById('tenantSelect').value; if (!tenant) return setStatus('Select a tenant first.');
+    try { const result = await api(`/admin/tenants/${encodeURIComponent(tenant)}/credits`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ delta_micro_usd: Number(document.getElementById('creditDelta').value), reason: document.getElementById('creditReason').value }) }); setStatus(`Balance updated: ${result.balance_micro_usd} micro-USD`); await loadTenants(); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('loadUsage').onclick = async () => {
+    const tenant = document.getElementById('tenantSelect').value; if (!tenant) return setStatus('Select a tenant first.');
+    try { const result = await api(`/admin/usage?tenant_id=${encodeURIComponent(tenant)}`); document.getElementById('usage').textContent = JSON.stringify(result, null, 2); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('loadAudit').onclick = async () => {
+    const tenant = document.getElementById('tenantSelect').value; if (!tenant) return setStatus('Select a tenant first.');
+    try { const result = await api(`/admin/audit?tenant_id=${encodeURIComponent(tenant)}`); document.getElementById('audit').textContent = JSON.stringify(result, null, 2); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('savePricing').onclick = async () => {
+    try { const result = await api('/admin/pricing', { method: 'PUT', body: JSON.stringify({ model: document.getElementById('model').value, input_micro_usd_per_token: Number(document.getElementById('inputPrice').value), output_micro_usd_per_token: Number(document.getElementById('outputPrice').value) }) }); document.getElementById('pricing').textContent = JSON.stringify(result, null, 2); setStatus('Created an immutable pricing version.'); }
+    catch (error) { setStatus(error.message); }
+  };
+  document.getElementById('tenantSelect').onchange = loadKeys;
+</script>
+</body>
+</html>

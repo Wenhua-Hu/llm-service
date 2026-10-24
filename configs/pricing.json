@@ -1,0 +1,9 @@
+{
+  "schema": "llm-service-pricing/1",
+  "status": "experimental",
+  "description": "Taskbook CPU fixture accounting rate; not a commercial price.",
+  "currency": "USD",
+  "unit": "per_token",
+  "input_micro_usd_per_token": 2,
+  "output_micro_usd_per_token": 6
+}

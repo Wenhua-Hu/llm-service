@@ -1,0 +1,13 @@
+# Target profile from the taskbook; runtime values remain unverified until GPU launch.
+status: pending_gpu_validation
+model_id: Qwen/Qwen2.5-7B-Instruct
+model_revision: a09a35458c702b33eeacc393d103063234e8bc28
+dtype: bfloat16
+context_length: 4096
+max_running_requests: 16
+# Must be measured and set above baseline before this profile can be launched.
+max_total_tokens: null
+mem_fraction_static: 0.8
+prefix_cache: true
+attention_backend: flashinfer
+sampling_defaults: openai

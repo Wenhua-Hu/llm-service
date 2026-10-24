@@ -1,0 +1,1766 @@
+{
+  "schema": "llm-serving-acceptance/1",
+  "version": "daytona-4090-v5-confirmed-5e2971c9",
+  "status": "calibrated",
+  "hardware_contains": "RTX 4090",
+  "model_id": "Qwen/Qwen2.5-7B-Instruct",
+  "model_revision": "a09a35458c702b33eeacc393d103063234e8bc28",
+  "dtype": "bfloat16",
+  "workload_version": "typed-json-numbered-records-prose-exact-input/5",
+  "concurrencies": [
+    1,
+    4,
+    8,
+    16
+  ],
+  "repeats": 3,
+  "requests_per_repeat": 16,
+  "deadline_seconds": 45,
+  "warmup_requests": 2,
+  "workloads": [
+    {
+      "id": "short",
+      "input_tokens": 512,
+      "records": 1,
+      "max_output_tokens": 96
+    },
+    {
+      "id": "long",
+      "input_tokens": 1024,
+      "records": 8,
+      "max_output_tokens": 384
+    }
+  ],
+  "targets": [
+    {
+      "workload": "short",
+      "concurrency": 8,
+      "output_tokens_per_second_min": 71,
+      "ttft_p95_ms_max": 1780,
+      "tpot_p95_ms_max": 35,
+      "e2e_p95_ms_max": 2350,
+      "slo_attainment_min": 0.95,
+      "success_rate_min": 0.99,
+      "quality_rate_min": 0.99,
+      "quality_goodput_min": 3.67
+    },
+    {
+      "workload": "short",
+      "concurrency": 16,
+      "output_tokens_per_second_min": 128,
+      "ttft_p95_ms_max": 1830,
+      "tpot_p95_ms_max": 40,
+      "e2e_p95_ms_max": 2600,
+      "slo_attainment_min": 0.95,
+      "success_rate_min": 0.99,
+      "quality_rate_min": 0.99,
+      "quality_goodput_min": 6.63
+    },
+    {
+      "workload": "long",
+      "concurrency": 8,
+      "output_tokens_per_second_min": 254,
+      "ttft_p95_ms_max": 1870,
+      "tpot_p95_ms_max": 29,
+      "e2e_p95_ms_max": 8900,
+      "slo_attainment_min": 0.95,
+      "success_rate_min": 0.99,
+      "quality_rate_min": 0.99,
+      "quality_goodput_min": 0.95
+    },
+    {
+      "workload": "long",
+      "concurrency": 16,
+      "output_tokens_per_second_min": 485,
+      "ttft_p95_ms_max": 2070,
+      "tpot_p95_ms_max": 30,
+      "e2e_p95_ms_max": 9350,
+      "slo_attainment_min": 0.95,
+      "success_rate_min": 0.99,
+      "quality_rate_min": 0.99,
+      "quality_goodput_min": 1.81
+    }
+  ],
+  "calibration": {
+    "run_id": "5e2971c9-b435-4e24-819d-c9eac79e7b9d",
+    "instance_id": "75f93d84-928b-4b9f-bc1a-9d4a47f14a22",
+    "provider": "daytona",
+    "seed": 12060058171086813211,
+    "seed_decimal": "12060058171086813211",
+    "commit_sha": "9961c0503c2eb3fa702794ef9281dd88f96d9456",
+    "hardware": "NVIDIA GeForce RTX 4090, GPU-86d51578-eb8d-9de3-1f56-67da7f9a4c06, 580.178.04, 23028 MiB",
+    "files_sha256": {
+      "baseline-long-c1-r0-inputs.json": "3ab54ebd6544ca8ba60b6c22ba448a2db8ba4dfc6430203390dfe717f26cc908",
+      "baseline-long-c1-r1-inputs.json": "7efcda2354fe2753579c00ba19d678677dfea91796ae22659dad1c1701e7c88b",
+      "baseline-long-c1-r2-inputs.json": "44a325a01db8ecdc936ae0f8dac177093a616763c87463ed0f319923a1b47c5d",
+      "baseline-long-c16-r0-inputs.json": "09e71d37ed0fcd33ef9344a0a5f8d0ca601b2455bbd382c2454172b61d467c21",
+      "baseline-long-c16-r1-inputs.json": "2bb5bb425ea163d6292294b7834b64164c76b00c12d37640654696fd2607ad2b",
+      "baseline-long-c16-r2-inputs.json": "20ed11aa73dd73c5a6bb7f16b00993d7816bcfa9910bea2e729f46a18f620baf",
+      "baseline-long-c4-r0-inputs.json": "90e34f575c3e7eb4df86bd149acafcfdc69d30a8cc02473a58495fda0729206a",
+      "baseline-long-c4-r1-inputs.json": "22d46e739154fbb2e824887fc8f49b8879fac9af9b26e6faf27ef9f4c96b36e1",
+      "baseline-long-c4-r2-inputs.json": "70c167a0c48826aeb87b7645c424f906f618df2524f931ada98e6397fec78a73",
+      "baseline-long-c8-r0-inputs.json": "5c9f6a27b154113dbf63dbf0947fc13152a569dffaaa52db3c93136978b9a8b0",
+      "baseline-long-c8-r1-inputs.json": "0af66b9d10089c8955b0bc0aefb4b9e169000409455e3480faba757a3867c4a6",
+      "baseline-long-c8-r2-inputs.json": "8befd4f015d6215468b6b279f51a5600fd6f34d2fa276b3bbed389e4c26c263b",
+      "baseline-serving-raw.jsonl": "04bdf352557d5d47e1e1c65946a3c855dd16d8696c0a76ccdfd2b70a3384445f",
+      "baseline-serving-summary.json": "836592173ebc35087a85c83647c6bebea1db95750b5bc191a215599d5089b152",
+      "baseline-short-c1-r0-inputs.json": "6ec0ae8404f8ee1a516c52a60db0e24a8a8c4b43e63131b3de63137c339bcb7c",
+      "baseline-short-c1-r1-inputs.json": "6f05b5f18141fcd90935d4d0c4ba086218e4dfdeb8aefe3dd2a56bafc3192043",
+      "baseline-short-c1-r2-inputs.json": "a865a6f330a41b2eb101f80ab1d47db15dcc9007320e5bf3799e461f7b05e314",
+      "baseline-short-c16-r0-inputs.json": "452fc08b44dab2eb64965f87890b0edf82a2e120f3807e093ce5d3ec158cb2e1",
+      "baseline-short-c16-r1-inputs.json": "3239f4c9966f0474c7f281f6dd439733159dd0ca751339197610b564e7112e36",
+      "baseline-short-c16-r2-inputs.json": "b081f496cb68da19140899c376998c1be81fdaf4ac4bcb69338db15d7db1fdfd",
+      "baseline-short-c4-r0-inputs.json": "eb4f630b731eaefb6ba2f6b96bcf23622f51abd6c7738d4f29f82857f17d4b22",
+      "baseline-short-c4-r1-inputs.json": "0a3720c589ed3665839e2befb1bbe3c9ec13b18982db755479efc6b24a7fc053",
+      "baseline-short-c4-r2-inputs.json": "95137f05c61452ceb0390c287bfa3f314bfbd6bd4b5c6e04992dec5cb7dd7103",
+      "baseline-short-c8-r0-inputs.json": "df6a6fe438ef2b87a7db374e988879b4748543f3a5e5eb60be7cd4d9021c4bd5",
+      "baseline-short-c8-r1-inputs.json": "a494206718f04ffbd7dedd0b3af64c42513fb935644e532195938862f9c4516f",
+      "baseline-short-c8-r2-inputs.json": "2a10e69e6a3ae3c78d37bd531ee8310faaa64f8b0809f8a5f32a3e4f05714d46",
+      "benchmark-manifest.json": "b41235e2b805f8620616794994d20bc98b2384c70b9f0338487e557c4525675e",
+      "declared-info.json": "2be071c5fdb75e821461417177e6982c6fa6a652eacbfd8a09231c03a1f52f15",
+      "optimized-long-c1-r0-inputs.json": "3ab54ebd6544ca8ba60b6c22ba448a2db8ba4dfc6430203390dfe717f26cc908",
+      "optimized-long-c1-r1-inputs.json": "7efcda2354fe2753579c00ba19d678677dfea91796ae22659dad1c1701e7c88b",
+      "optimized-long-c1-r2-inputs.json": "44a325a01db8ecdc936ae0f8dac177093a616763c87463ed0f319923a1b47c5d",
+      "optimized-long-c16-r0-inputs.json": "09e71d37ed0fcd33ef9344a0a5f8d0ca601b2455bbd382c2454172b61d467c21",
+      "optimized-long-c16-r1-inputs.json": "2bb5bb425ea163d6292294b7834b64164c76b00c12d37640654696fd2607ad2b",
+      "optimized-long-c16-r2-inputs.json": "20ed11aa73dd73c5a6bb7f16b00993d7816bcfa9910bea2e729f46a18f620baf",
+      "optimized-long-c4-r0-inputs.json": "90e34f575c3e7eb4df86bd149acafcfdc69d30a8cc02473a58495fda0729206a",
+      "optimized-long-c4-r1-inputs.json": "22d46e739154fbb2e824887fc8f49b8879fac9af9b26e6faf27ef9f4c96b36e1",
+      "optimized-long-c4-r2-inputs.json": "70c167a0c48826aeb87b7645c424f906f618df2524f931ada98e6397fec78a73",
+      "optimized-long-c8-r0-inputs.json": "5c9f6a27b154113dbf63dbf0947fc13152a569dffaaa52db3c93136978b9a8b0",
+      "optimized-long-c8-r1-inputs.json": "0af66b9d10089c8955b0bc0aefb4b9e169000409455e3480faba757a3867c4a6",
+      "optimized-long-c8-r2-inputs.json": "8befd4f015d6215468b6b279f51a5600fd6f34d2fa276b3bbed389e4c26c263b",
+      "optimized-serving-raw.jsonl": "1687bf697fe0cfdbab12e7bd2e0d571a7dc773f4b8c060e0d3ff3a373aa0a6e1",
+      "optimized-serving-summary.json": "8a911f67bfb2f0968eae1395e39f9180c8f1f3faa8305efd2f7e83e6cdaa0b00",
+      "optimized-short-c1-r0-inputs.json": "6ec0ae8404f8ee1a516c52a60db0e24a8a8c4b43e63131b3de63137c339bcb7c",
+      "optimized-short-c1-r1-inputs.json": "6f05b5f18141fcd90935d4d0c4ba086218e4dfdeb8aefe3dd2a56bafc3192043",
+      "optimized-short-c1-r2-inputs.json": "a865a6f330a41b2eb101f80ab1d47db15dcc9007320e5bf3799e461f7b05e314",
+      "optimized-short-c16-r0-inputs.json": "452fc08b44dab2eb64965f87890b0edf82a2e120f3807e093ce5d3ec158cb2e1",
+      "optimized-short-c16-r1-inputs.json": "3239f4c9966f0474c7f281f6dd439733159dd0ca751339197610b564e7112e36",
+      "optimized-short-c16-r2-inputs.json": "b081f496cb68da19140899c376998c1be81fdaf4ac4bcb69338db15d7db1fdfd",
+      "optimized-short-c4-r0-inputs.json": "eb4f630b731eaefb6ba2f6b96bcf23622f51abd6c7738d4f29f82857f17d4b22",
+      "optimized-short-c4-r1-inputs.json": "0a3720c589ed3665839e2befb1bbe3c9ec13b18982db755479efc6b24a7fc053",
+      "optimized-short-c4-r2-inputs.json": "95137f05c61452ceb0390c287bfa3f314bfbd6bd4b5c6e04992dec5cb7dd7103",
+      "optimized-short-c8-r0-inputs.json": "df6a6fe438ef2b87a7db374e988879b4748543f3a5e5eb60be7cd4d9021c4bd5",
+      "optimized-short-c8-r1-inputs.json": "a494206718f04ffbd7dedd0b3af64c42513fb935644e532195938862f9c4516f",
+      "optimized-short-c8-r2-inputs.json": "2a10e69e6a3ae3c78d37bd531ee8310faaa64f8b0809f8a5f32a3e4f05714d46",
+      "qualification/inputs.json": "c6760a165dc7bda7d8ef8bb790851f963c49e65cfbb216ee22540f5e39778ebc",
+      "qualification/raw.jsonl": "41597f453681a367fa65074963a927ea2d0684a4a75c29d98d3cbe474e507da6",
+      "qualification/report.json": "bf6fd345cf8e65b2f50c42d73a5367d12f8532be3244c6964df536dd0a337934",
+      "report.json": "5c3e91551fd6e08b165811085d830ab823685a4ebb2489428544215a579e07ca",
+      "run-context.json": "8e5357a37a933580a0f8b03d74de7c7b03ae2cafa171d7e3dc9a0ced054cbc28"
+    },
+    "qualification": {
+      "input_sha256": "c6760a165dc7bda7d8ef8bb790851f963c49e65cfbb216ee22540f5e39778ebc",
+      "complete": true,
+      "completed": 64,
+      "correct": 64
+    },
+    "kind": "calibration_not_confirmation",
+    "methodology_version": "capacity-negative-control/3",
+    "independent_confirmation": {
+      "run_id": "d666d097-ec0c-430f-8245-bc473e67a913",
+      "instance_id": "c1653d36-ef8a-45a4-96cb-76ffffcd537a",
+      "provider": "daytona",
+      "seed": 5787157838003875303,
+      "seed_decimal": "5787157838003875303",
+      "commit_sha": "9961c0503c2eb3fa702794ef9281dd88f96d9456",
+      "hardware": "NVIDIA GeForce RTX 4090, GPU-215cc1de-c4cd-820d-285e-b95a1b83a293, 570.195.03, 23028 MiB",
+      "files_sha256": {
+        "baseline-long-c1-r0-inputs.json": "1eeb0b909278b2b32850d26ef5f1f4627fe24e25a50aa4aa62083cf980d82938",
+        "baseline-long-c1-r1-inputs.json": "0ac842178f8e02fec4aab8e419fd1e8cf91df3255586702585b06264906e3f39",
+        "baseline-long-c1-r2-inputs.json": "9fdc280319db40c6699cf2d8deb1507bdb827279bf6c8f8cf5d90637ecebf955",
+        "baseline-long-c16-r0-inputs.json": "7fafe101074b5c891bf90b36b53f975aac327f06f5a0fb802c1c0f9b3950cde3",
+        "baseline-long-c16-r1-inputs.json": "3b6beea46e9e726904c42475ce95220f66b9255c1cc05ea2e94ecc40d95a380e",
+        "baseline-long-c16-r2-inputs.json": "ffff9d58c2e90d777bdbc1a0b3c329657e871596590647ef9d8fbe98a899eeaa",
+        "baseline-long-c4-r0-inputs.json": "1bcbc39377b72d90f2456542be666347f02d50ad6647fdaa3643a98542f51b7f",
+        "baseline-long-c4-r1-inputs.json": "631166f142c21187f7f77dc4741f3f82b32c0a4463e4f2917d40f8860ffcf207",
+        "baseline-long-c4-r2-inputs.json": "d16390df219871944740edbeb52b31b1a68ca32609121c8440cccac0eb6aa521",
+        "baseline-long-c8-r0-inputs.json": "f0417ad8be3fad586bb778f597193ba724fed6e3a1ff2ca347a203c3e679d7e7",
+        "baseline-long-c8-r1-inputs.json": "6eab8e3f359849f9dbd3c666784232320b657501e5c31354e1615edaf11169a0",
+        "baseline-long-c8-r2-inputs.json": "cbbb577ff430605497d0c0decc168c8e4348778a1e926cb9c95ca5ae8cdbc481",
+        "baseline-serving-raw.jsonl": "156dd99e039f21068722967716118ceb168d3bf1345d16a967b5e35df1a03a6e",
+        "baseline-serving-summary.json": "564a9a681f370c05ae04f920cccab014ff232212f7ec4231558d862fcf100a36",
+        "baseline-short-c1-r0-inputs.json": "949c8ae8c4de5a8c9918e1c4cb1b8195e974ad72eadc4e5b22d65ea38aa02c19",
+        "baseline-short-c1-r1-inputs.json": "de69386c77814ef18bbf24be179257d12bae54c17f4b69bf2042e186e844a560",
+        "baseline-short-c1-r2-inputs.json": "59e51a3309ef55f90f26a10ef9e66a3c8ce2e52e1e2620c9e14fb11745dc9e84",
+        "baseline-short-c16-r0-inputs.json": "3604df80f439c5d637039c6efdcff87d4fe9adc1fe12ea41b6670ff846ed49e6",
+        "baseline-short-c16-r1-inputs.json": "89e8f7814e05d12dce5b708e85442f78c50d20040d8044cf047b8d8053701106",
+        "baseline-short-c16-r2-inputs.json": "0f43f3bbf71331d058caf75b170feb2a0ce5a3735764332367c99a57b4d3dc5e",
+        "baseline-short-c4-r0-inputs.json": "3a5d507e1112dc43912f775077fe70432633aa7ef474b2283bcc1942502d19d0",
+        "baseline-short-c4-r1-inputs.json": "aecf44e234b11a68c50a3821b65d21213365f92f41feb22304d644e788e42d46",
+        "baseline-short-c4-r2-inputs.json": "315c2037847d27c20706324da38fa414e874896e64b637ad630500c63c2b917c",
+        "baseline-short-c8-r0-inputs.json": "707134d05f1ff54570e4927c987e2a538be3cebf5fd21b48b82020284889ad09",
+        "baseline-short-c8-r1-inputs.json": "0e044fbfc927e1a14fc7aaa1ad8950d19dd6178c2058b03c98b98daa565658bb",
+        "baseline-short-c8-r2-inputs.json": "19304e828af5fef67c980ed523bd0381cbb89e266233d4164a585e2ba593c1de",
+        "benchmark-manifest.json": "2978da2b8e28b6666cf34fac15095237d31e4669fd50015eb03b9e7d108f52ac",
+        "declared-info.json": "2be071c5fdb75e821461417177e6982c6fa6a652eacbfd8a09231c03a1f52f15",
+        "optimized-long-c1-r0-inputs.json": "1eeb0b909278b2b32850d26ef5f1f4627fe24e25a50aa4aa62083cf980d82938",
+        "optimized-long-c1-r1-inputs.json": "0ac842178f8e02fec4aab8e419fd1e8cf91df3255586702585b06264906e3f39",
+        "optimized-long-c1-r2-inputs.json": "9fdc280319db40c6699cf2d8deb1507bdb827279bf6c8f8cf5d90637ecebf955",
+        "optimized-long-c16-r0-inputs.json": "7fafe101074b5c891bf90b36b53f975aac327f06f5a0fb802c1c0f9b3950cde3",
+        "optimized-long-c16-r1-inputs.json": "3b6beea46e9e726904c42475ce95220f66b9255c1cc05ea2e94ecc40d95a380e",
+        "optimized-long-c16-r2-inputs.json": "ffff9d58c2e90d777bdbc1a0b3c329657e871596590647ef9d8fbe98a899eeaa",
+        "optimized-long-c4-r0-inputs.json": "1bcbc39377b72d90f2456542be666347f02d50ad6647fdaa3643a98542f51b7f",
+        "optimized-long-c4-r1-inputs.json": "631166f142c21187f7f77dc4741f3f82b32c0a4463e4f2917d40f8860ffcf207",
+        "optimized-long-c4-r2-inputs.json": "d16390df219871944740edbeb52b31b1a68ca32609121c8440cccac0eb6aa521",
+        "optimized-long-c8-r0-inputs.json": "f0417ad8be3fad586bb778f597193ba724fed6e3a1ff2ca347a203c3e679d7e7",
+        "optimized-long-c8-r1-inputs.json": "6eab8e3f359849f9dbd3c666784232320b657501e5c31354e1615edaf11169a0",
+        "optimized-long-c8-r2-inputs.json": "cbbb577ff430605497d0c0decc168c8e4348778a1e926cb9c95ca5ae8cdbc481",
+        "optimized-serving-raw.jsonl": "e732ed0615f04ab66da20652dd1e3d6887de6ccd6186a83103e698c4bea74c76",
+        "optimized-serving-summary.json": "0ae4a2fdb67a7b2190e302d14113749f7474a9600772204c44b93c7ae9522a64",
+        "optimized-short-c1-r0-inputs.json": "949c8ae8c4de5a8c9918e1c4cb1b8195e974ad72eadc4e5b22d65ea38aa02c19",
+        "optimized-short-c1-r1-inputs.json": "de69386c77814ef18bbf24be179257d12bae54c17f4b69bf2042e186e844a560",
+        "optimized-short-c1-r2-inputs.json": "59e51a3309ef55f90f26a10ef9e66a3c8ce2e52e1e2620c9e14fb11745dc9e84",
+        "optimized-short-c16-r0-inputs.json": "3604df80f439c5d637039c6efdcff87d4fe9adc1fe12ea41b6670ff846ed49e6",
+        "optimized-short-c16-r1-inputs.json": "89e8f7814e05d12dce5b708e85442f78c50d20040d8044cf047b8d8053701106",
+        "optimized-short-c16-r2-inputs.json": "0f43f3bbf71331d058caf75b170feb2a0ce5a3735764332367c99a57b4d3dc5e",
+        "optimized-short-c4-r0-inputs.json": "3a5d507e1112dc43912f775077fe70432633aa7ef474b2283bcc1942502d19d0",
+        "optimized-short-c4-r1-inputs.json": "aecf44e234b11a68c50a3821b65d21213365f92f41feb22304d644e788e42d46",
+        "optimized-short-c4-r2-inputs.json": "315c2037847d27c20706324da38fa414e874896e64b637ad630500c63c2b917c",
+        "optimized-short-c8-r0-inputs.json": "707134d05f1ff54570e4927c987e2a538be3cebf5fd21b48b82020284889ad09",
+        "optimized-short-c8-r1-inputs.json": "0e044fbfc927e1a14fc7aaa1ad8950d19dd6178c2058b03c98b98daa565658bb",
+        "optimized-short-c8-r2-inputs.json": "19304e828af5fef67c980ed523bd0381cbb89e266233d4164a585e2ba593c1de",
+        "report.json": "5acac82e9f7cfe7e5fbe8b97db52b7fc016f2caab5a8462603608c19c7331115",
+        "run-context.json": "b332cd422a722a14daed17472c149fa5d72ff49fff9fac805c0699a80c1e46a2"
+      },
+      "kind": "independent_confirmation",
+      "passed": true,
+      "calibration_run_id": "5e2971c9-b435-4e24-819d-c9eac79e7b9d",
+      "calibration_instance_id": "75f93d84-928b-4b9f-bc1a-9d4a47f14a22",
+      "core_contract_sha256": "6ff612ca8628555c5d179c0b2a5599d3e5b38b09cd80fa531e186ce4ed181c07",
+      "evaluation": {
+        "points": 30.0,
+        "max": 30,
+        "passed": true,
+        "status": "passed",
+        "provisional": true,
+        "core_contract_sha256": "6ff612ca8628555c5d179c0b2a5599d3e5b38b09cd80fa531e186ce4ed181c07",
+        "acceptance_version": "daytona-4090-v5-candidate-5e2971c9",
+        "hardware_matches": true,
+        "checks": [
+          {
+            "workload": "short",
+            "concurrency": 8,
+            "passed": true,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 94.67922131867411,
+                "threshold": 71,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 1179.0085518732667,
+                "threshold": 1780,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 22.628470406155376,
+                "threshold": 35,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 1533.6310318671167,
+                "threshold": 2350,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 5.235717307945111,
+                "threshold": 3.67,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 1.0,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          },
+          {
+            "workload": "short",
+            "concurrency": 16,
+            "passed": true,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 167.59504101841245,
+                "threshold": 128,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 1356.479240115732,
+                "threshold": 1830,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 27.540741241810952,
+                "threshold": 40,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 1735.914362128824,
+                "threshold": 2600,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 9.236006852909066,
+                "threshold": 6.63,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 1.0,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          },
+          {
+            "workload": "long",
+            "concurrency": 8,
+            "passed": true,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 341.0004366434871,
+                "threshold": 254,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 1240.0611639022827,
+                "threshold": 1870,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 19.07981983591694,
+                "threshold": 29,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 5904.0697808377445,
+                "threshold": 8900,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 1.3619588083614063,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 1.0,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          },
+          {
+            "workload": "long",
+            "concurrency": 16,
+            "passed": true,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 647.1032131764875,
+                "threshold": 485,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 1361.9224452413619,
+                "threshold": 2070,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 19.939253895333216,
+                "threshold": 30,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 6198.674364946783,
+                "threshold": 9350,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 2.5834612187034356,
+                "threshold": 1.81,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 1.0,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          }
+        ]
+      },
+      "baseline_against_candidate": {
+        "points": 0.0,
+        "max": 30,
+        "passed": false,
+        "status": "failed",
+        "provisional": true,
+        "core_contract_sha256": "6ff612ca8628555c5d179c0b2a5599d3e5b38b09cd80fa531e186ce4ed181c07",
+        "acceptance_version": "daytona-4090-v5-candidate-5e2971c9",
+        "hardware_matches": true,
+        "checks": [
+          {
+            "workload": "short",
+            "concurrency": 8,
+            "passed": false,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 40.298568092172246,
+                "threshold": 71,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 3731.9175540469587,
+                "threshold": 1780,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 17.768932894493144,
+                "threshold": 35,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 4057.4226630851626,
+                "threshold": 2350,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 0.2785615305910524,
+                "threshold": 3.67,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 0.125,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          },
+          {
+            "workload": "short",
+            "concurrency": 16,
+            "passed": false,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 40.15403592780704,
+                "threshold": 128,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 6850.884201005101,
+                "threshold": 1830,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 17.89102717028821,
+                "threshold": 40,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 7159.581030253321,
+                "threshold": 2600,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 0.2766064472638831,
+                "threshold": 6.63,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 0.125,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "success_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 1.0,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": true
+              }
+            ]
+          },
+          {
+            "workload": "long",
+            "concurrency": 8,
+            "passed": false,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 48.37071099776769,
+                "threshold": 254,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 25840.754982549697,
+                "threshold": 1870,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 17.953211778774858,
+                "threshold": 29,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 30308.875638991594,
+                "threshold": 8900,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 0.01609317211858745,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 0.0625,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "success_rate",
+                "actual": 0.75,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 0.75,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": false
+              }
+            ]
+          },
+          {
+            "workload": "long",
+            "concurrency": 16,
+            "passed": false,
+            "metrics": [
+              {
+                "metric": "output_tokens_per_second",
+                "actual": 48.14333871864726,
+                "threshold": 485,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "ttft_p95_ms",
+                "actual": 24069.338080007583,
+                "threshold": 2070,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "tpot_p95_ms",
+                "actual": 17.93607121761588,
+                "threshold": 30,
+                "comparison": "<=",
+                "passed": true
+              },
+              {
+                "metric": "e2e_p95_ms",
+                "actual": 28550.830972380936,
+                "threshold": 9350,
+                "comparison": "<=",
+                "passed": false
+              },
+              {
+                "metric": "quality_goodput",
+                "actual": 0.03205282204969857,
+                "threshold": 1.81,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "slo_attainment",
+                "actual": 0.0625,
+                "threshold": 0.95,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "success_rate",
+                "actual": 0.375,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": false
+              },
+              {
+                "metric": "quality_rate",
+                "actual": 0.375,
+                "threshold": 0.99,
+                "comparison": ">=",
+                "passed": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "latency_stability": [
+      {
+        "profile": "baseline",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1209.975996054709,
+          1200.977171305567,
+          1238.5853021405637
+        ],
+        "max_to_min_with_floor": 1.031314609247829
+      },
+      {
+        "profile": "baseline",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "tpot_ms",
+        "round_p95": [
+          17.647846213852365,
+          17.683677758802386,
+          17.99890853683738
+        ],
+        "max_to_min_with_floor": 1.0198926440502103
+      },
+      {
+        "profile": "baseline",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "e2e_ms",
+        "round_p95": [
+          1533.9457499794662,
+          1525.604491122067,
+          1564.9568713270128
+        ],
+        "max_to_min_with_floor": 1.025794614812652
+      },
+      {
+        "profile": "baseline",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1246.0967102088034,
+          1248.9486071281135,
+          1341.4260768331587
+        ],
+        "max_to_min_with_floor": 1.0765023820730426
+      },
+      {
+        "profile": "baseline",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "tpot_ms",
+        "round_p95": [
+          18.09350104491797,
+          17.826719118645823,
+          17.820533772930503
+        ],
+        "max_to_min_with_floor": 1.015317569914887
+      },
+      {
+        "profile": "baseline",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "e2e_ms",
+        "round_p95": [
+          5746.571253985167,
+          5693.243792280555,
+          5823.454768862575
+        ],
+        "max_to_min_with_floor": 1.0228711401325503
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1159.6363517455757,
+          1170.7799178548157,
+          1166.193242650479
+        ],
+        "max_to_min_with_floor": 1.0096095349998868
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "tpot_ms",
+        "round_p95": [
+          17.70984334871173,
+          17.531527335652047,
+          17.578865838004276
+        ],
+        "max_to_min_with_floor": 1.0101711624803538
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 1,
+        "metric": "e2e_ms",
+        "round_p95": [
+          1500.1824391074479,
+          1494.4938058033586,
+          1490.9139717929065
+        ],
+        "max_to_min_with_floor": 1.0062166345543033
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 4,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1210.2268459275365,
+          1370.5194871872663,
+          1272.5246651098132
+        ],
+        "max_to_min_with_floor": 1.1324484263418229
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 4,
+        "metric": "tpot_ms",
+        "round_p95": [
+          22.064814590575065,
+          21.874233998139115,
+          22.01761133619584
+        ],
+        "max_to_min_with_floor": 1.0087125607439402
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 4,
+        "metric": "e2e_ms",
+        "round_p95": [
+          1568.2550389319658,
+          1708.910082001239,
+          1618.9020001329482
+        ],
+        "max_to_min_with_floor": 1.0896888832348748
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 8,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1165.1500803418458,
+          1200.8961490355432,
+          1184.4945861957967
+        ],
+        "max_to_min_with_floor": 1.0306793685180966
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 8,
+        "metric": "tpot_ms",
+        "round_p95": [
+          23.29687464653569,
+          24.61209175560404,
+          20.580981832204593
+        ],
+        "max_to_min_with_floor": 1.1958657733758684
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 8,
+        "metric": "e2e_ms",
+        "round_p95": [
+          1535.6797743588686,
+          1547.3901606164873,
+          1539.5712899044156
+        ],
+        "max_to_min_with_floor": 1.0076255391606677
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 16,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1217.6743098534644,
+          1263.9222810976207,
+          1222.4076017737389
+        ],
+        "max_to_min_with_floor": 1.0379805756514004
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 16,
+        "metric": "tpot_ms",
+        "round_p95": [
+          27.522685033652714,
+          27.493343766157825,
+          23.72054648859536
+        ],
+        "max_to_min_with_floor": 1.1602888258449437
+      },
+      {
+        "profile": "optimized",
+        "workload": "short",
+        "concurrency": 16,
+        "metric": "e2e_ms",
+        "round_p95": [
+          1729.2239051312208,
+          1688.552072737366,
+          1627.4291980080307
+        ],
+        "max_to_min_with_floor": 1.0625493921626739
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1176.7366430722177,
+          1192.9079312831163,
+          1208.9895159006119
+        ],
+        "max_to_min_with_floor": 1.027408743509668
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "tpot_ms",
+        "round_p95": [
+          17.63298516605227,
+          17.67307851070249,
+          17.599978931248188
+        ],
+        "max_to_min_with_floor": 1.0041533901682413
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 1,
+        "metric": "e2e_ms",
+        "round_p95": [
+          5618.074429221451,
+          5610.658613033593,
+          5631.881603971124
+        ],
+        "max_to_min_with_floor": 1.003782620259274
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 4,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1204.6801140531898,
+          1190.107787027955,
+          1231.4166422002017
+        ],
+        "max_to_min_with_floor": 1.034710179718601
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 4,
+        "metric": "tpot_ms",
+        "round_p95": [
+          18.914368370941197,
+          18.90942161555896,
+          18.913538112039014
+        ],
+        "max_to_min_with_floor": 1.0002616026805478
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 4,
+        "metric": "e2e_ms",
+        "round_p95": [
+          5886.6950129158795,
+          5885.265077929944,
+          5952.941016759723
+        ],
+        "max_to_min_with_floor": 1.011499216761462
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 8,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1247.3466438241303,
+          1261.6847660392523,
+          1244.3086630664766
+        ],
+        "max_to_min_with_floor": 1.0139644635519567
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 8,
+        "metric": "tpot_ms",
+        "round_p95": [
+          19.16697267891772,
+          19.174157879334018,
+          19.04362162026847
+        ],
+        "max_to_min_with_floor": 1.0068545921394811
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 8,
+        "metric": "e2e_ms",
+        "round_p95": [
+          5908.239157404751,
+          5912.87460597232,
+          5944.352354854345
+        ],
+        "max_to_min_with_floor": 1.0061123452330691
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 16,
+        "metric": "ttft_ms",
+        "round_p95": [
+          1386.1662028357387,
+          1370.1998507604003,
+          1391.5154258720577
+        ],
+        "max_to_min_with_floor": 1.0155565446163406
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 16,
+        "metric": "tpot_ms",
+        "round_p95": [
+          19.8146818028499,
+          19.749750689257898,
+          19.737973367795348
+        ],
+        "max_to_min_with_floor": 1.0038863379550258
+      },
+      {
+        "profile": "optimized",
+        "workload": "long",
+        "concurrency": 16,
+        "metric": "e2e_ms",
+        "round_p95": [
+          6171.197511721402,
+          6155.493889003992,
+          6204.95967566967
+        ],
+        "max_to_min_with_floor": 1.008036038627874
+      }
+    ],
+    "baseline_capacity": [
+      {
+        "workload": "short",
+        "concurrency": 4,
+        "attempted": 48,
+        "successful_correct": 48,
+        "capacity_failures": 0,
+        "success_rate": 1.0,
+        "quality_rate_all_attempts": 1.0,
+        "error_counts": {}
+      },
+      {
+        "workload": "short",
+        "concurrency": 8,
+        "attempted": 48,
+        "successful_correct": 48,
+        "capacity_failures": 0,
+        "success_rate": 1.0,
+        "quality_rate_all_attempts": 1.0,
+        "error_counts": {}
+      },
+      {
+        "workload": "short",
+        "concurrency": 16,
+        "attempted": 48,
+        "successful_correct": 48,
+        "capacity_failures": 0,
+        "success_rate": 1.0,
+        "quality_rate_all_attempts": 1.0,
+        "error_counts": {}
+      },
+      {
+        "workload": "long",
+        "concurrency": 4,
+        "attempted": 48,
+        "successful_correct": 48,
+        "capacity_failures": 0,
+        "success_rate": 1.0,
+        "quality_rate_all_attempts": 1.0,
+        "error_counts": {}
+      },
+      {
+        "workload": "long",
+        "concurrency": 8,
+        "attempted": 48,
+        "successful_correct": 36,
+        "capacity_failures": 12,
+        "success_rate": 0.75,
+        "quality_rate_all_attempts": 0.75,
+        "error_counts": {
+          "sse_request_timeout": 12
+        }
+      },
+      {
+        "workload": "long",
+        "concurrency": 16,
+        "attempted": 48,
+        "successful_correct": 18,
+        "capacity_failures": 30,
+        "success_rate": 0.375,
+        "quality_rate_all_attempts": 0.375,
+        "error_counts": {
+          "sse_request_timeout": 30
+        }
+      }
+    ],
+    "baseline_policy": {
+      "concurrency1": "all requests correct and successful",
+      "higher_concurrency": "complete matrix; >=1 correct success per repeat; failures only HTTP429/504, full-client deadline, or explicit SSE request_timeout/upstream_timeout",
+      "denominator": "all attempts, including failures",
+      "latency_percentiles": "conditional on successful correct requests; never interpreted without success rate"
+    },
+    "threshold_policy": {
+      "throughput_fraction": 0.75,
+      "latency_multiplier": 1.5,
+      "goodput_fraction": 0.7,
+      "slo_attainment_min": 0.95,
+      "success_rate_min": 0.99,
+      "quality_rate_min": 0.99
+    },
+    "limitations": [
+      "Evidence covers one calibration allocation and one independent confirmation allocation only; this is not a broader fleet or long-term variability estimate.",
+      "Optimized and healthy baseline concurrency1 latency stability checked; overloaded baseline is a negative control; per-round throughput windows unavailable.",
+      "Model identity/configuration is runtime-declared; tokenizer and measurement are controller-derived.",
+      "Closed-loop structured extraction with shared padding; prefix reuse is allowed. Not general LLM throughput."
+    ],
+    "baseline_against_candidate": {
+      "points": 0.0,
+      "max": 30,
+      "passed": false,
+      "status": "failed",
+      "provisional": true,
+      "core_contract_sha256": "6ff612ca8628555c5d179c0b2a5599d3e5b38b09cd80fa531e186ce4ed181c07",
+      "acceptance_version": "daytona-4090-v5-candidate-5e2971c9",
+      "hardware_matches": true,
+      "checks": [
+        {
+          "workload": "short",
+          "concurrency": 8,
+          "passed": false,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 40.29295001387156,
+              "threshold": 71,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 3781.436702236533,
+              "threshold": 1780,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 17.765778220362133,
+              "threshold": 35,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 4108.1828800961375,
+              "threshold": 2350,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 0.2775633755260957,
+              "threshold": 3.67,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 0.125,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "workload": "short",
+          "concurrency": 16,
+          "passed": false,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 40.26425217798612,
+              "threshold": 128,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 6799.380319193006,
+              "threshold": 1830,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 17.73794652784572,
+              "threshold": 40,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 7143.308951053768,
+              "threshold": 2600,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 0.3235933010859964,
+              "threshold": 6.63,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 0.14583333333333334,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "workload": "long",
+          "concurrency": 8,
+          "passed": false,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 48.29592159691032,
+              "threshold": 254,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 25757.99888232723,
+              "threshold": 1870,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 17.822583134357746,
+              "threshold": 29,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 30206.458744127303,
+              "threshold": 8900,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 0.016089701809076176,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 0.0625,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "success_rate",
+              "actual": 0.75,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 0.75,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": false
+            }
+          ]
+        },
+        {
+          "workload": "long",
+          "concurrency": 16,
+          "passed": false,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 48.02223581652694,
+              "threshold": 485,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 23996.18312716484,
+              "threshold": 2070,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 17.83592568012882,
+              "threshold": 30,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 28423.712632153183,
+              "threshold": 9350,
+              "comparison": "<=",
+              "passed": false
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 0.03205756730075229,
+              "threshold": 1.81,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 0.0625,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "success_rate",
+              "actual": 0.375,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": false
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 0.375,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": false
+            }
+          ]
+        }
+      ]
+    },
+    "optimized_against_candidate": {
+      "points": 30.0,
+      "max": 30,
+      "passed": true,
+      "status": "passed",
+      "provisional": true,
+      "core_contract_sha256": "6ff612ca8628555c5d179c0b2a5599d3e5b38b09cd80fa531e186ce4ed181c07",
+      "acceptance_version": "daytona-4090-v5-candidate-5e2971c9",
+      "hardware_matches": true,
+      "checks": [
+        {
+          "workload": "short",
+          "concurrency": 8,
+          "passed": true,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 95.26935446941515,
+              "threshold": 71,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 1181.8684237077832,
+              "threshold": 1780,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 22.970318082062636,
+              "threshold": 35,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 1535.8178527094424,
+              "threshold": 2350,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 5.2502055275911905,
+              "threshold": 3.67,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 1.0,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "workload": "short",
+          "concurrency": 16,
+          "passed": true,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 171.89435929635178,
+              "threshold": 128,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 1219.0448278561234,
+              "threshold": 1830,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 26.33593587533516,
+              "threshold": 40,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 1714.372111018747,
+              "threshold": 2600,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 9.472938284988388,
+              "threshold": 6.63,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 1.0,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "workload": "long",
+          "concurrency": 8,
+          "passed": true,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 339.879545119623,
+              "threshold": 254,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 1244.3086630664766,
+              "threshold": 1870,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 19.062383908284716,
+              "threshold": 29,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 5910.277646966279,
+              "threshold": 8900,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 1.3584993059989927,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 1.0,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        },
+        {
+          "workload": "long",
+          "concurrency": 16,
+          "passed": true,
+          "metrics": [
+            {
+              "metric": "output_tokens_per_second",
+              "actual": 646.7034905364254,
+              "threshold": 485,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "ttft_p95_ms",
+              "actual": 1379.5651849359274,
+              "threshold": 2070,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "tpot_p95_ms",
+              "actual": 19.737973367795348,
+              "threshold": 30,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "e2e_p95_ms",
+              "actual": 6200.515647884458,
+              "threshold": 9350,
+              "comparison": "<=",
+              "passed": true
+            },
+            {
+              "metric": "quality_goodput",
+              "actual": 2.585951978152984,
+              "threshold": 1.81,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "slo_attainment",
+              "actual": 1.0,
+              "threshold": 0.95,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "success_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            },
+            {
+              "metric": "quality_rate",
+              "actual": 1.0,
+              "threshold": 0.99,
+              "comparison": ">=",
+              "passed": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "notes": [
+    "Frozen targets passed independent fresh-allocation confirmation and are eligible for official performance scoring; missing thresholds never pass.",
+    "Timing uses trusted client clock. TTFT is time to first non-empty text event; TPOT uses independently retokenized visible text. Event gaps are not exact per-token ITL.",
+    "Per-run inputs are fresh; only shape warmup is reused. Both profiles get identical measured prompts. Cache hits are permitted and must be reported separately in cache-specific tests.",
+    "Model, hardware, dtype, exact chat-template input lengths and maximum output lengths are part of the acceptance contract. Output length is model-determined and recorded; correctness is a prerequisite for counting useful throughput.",
+    "Closed-loop structured extraction with shared padding, not general LLM throughput. Common padding prefixes may benefit RadixAttention; dedicated shared/unique prefix on/off tests remain separate evidence.",
+    "Neutral decoding is fixed: temperature=0 in requests, SGLang --sampling-defaults=openai, repetition_penalty=1, top_p=1, top_k=-1. Runtime declarations are checked for both profiles; model-inherited sampling defaults cannot be mixed into calibration.",
+    "Controller measurement v2 retains explicit request_timeout/upstream_timeout SSE errors as failed timeout rows. Missing or generic error codes remain protocol failures; historical raw rows are never reclassified.",
+    "Changes only repeated z padding to a frozen natural-language bank; original v1 extraction instructions, RNG records, strict typed answers, input lengths and output caps remain unchanged.",
+    "Causal diagnostic e32ced55: native SGLang 8/8, HF eager 6/8. HF long literal-copy controls still have numeric errors. Qualification64 was NOT run under that original both-paths-pass protocol.",
+    "Subsequent decision: HF remains a diagnostic control; validate the actual delivered SGLang service on all64 independent frozen extraction cases before the full new calibration matrix. No raw failures are removed or reclassified.",
+    "These frozen performance targets were independently confirmed on a fresh allocation using the same contract and reference commit. No performance target is inferred from the failed v4 run.",
+    "v5 preserves original RNG, strict typed answers and array order, exact512/1024 token inputs, 96/384 output caps, neutral decoding and generic json_object mode. Only long inputs gain Record1..8 numbering and an explicit instruction to preserve numbered input order without grouping/sorting by city/id/units. Short inputs are identical to v4.",
+    "The same frozen natural-language prose bank fills exact token lengths; no JSON answers are included in prompts and no output repair, order-insensitive comparison or seed filtering is allowed.",
+    "Qualification uses all64 new frozen cases from seeds2026101811..2026101814 without retries. v1-v4 original evidence remains unchanged and cannot calibrate v5."
+  ],
+  "decoding_policy": {
+    "temperature": 0,
+    "repetition_penalty": 1.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "sampling_defaults": "openai"
+  },
+  "measurement_version": "controller-sse/2",
+  "prose_bank_sha256": "84e28c0006bf3fb30049caaa505cf2bd2f3e2ea5d9f1f34a190ba2aa4936dcbf",
+  "response_format": {
+    "type": "json_object"
+  }
+}
