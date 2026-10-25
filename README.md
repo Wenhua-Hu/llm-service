@@ -14,7 +14,7 @@ Implemented locally so far:
 - authenticated `/metrics`, an admin console connected to tenant/key/credit/pricing/usage/audit APIs, and `/agent/run` planner → `lookup_order` → final-answer execution
 - `setup.sh` starts a configured SGLang engine and gateway; `--contract-test` starts only the gateway against the supplied CPU fixture, and `--stop` stops project-owned processes
 
-This is an in-progress implementation, not a completed OpenLabs submission. SGLang launch/supervision is implemented but has not yet been launched on the Daytona GPU; baseline/optimized profile values, benchmark and experiment entrypoints, GPU evidence, and official soft/GPU evaluation remain outstanding. Tenant administration, key rotation/revocation, metering, quotas, the working console, and a first Agent runner are implemented locally but still need the official checker and broader concurrency/recovery coverage.
+This is an in-progress implementation, not a completed OpenLabs submission. SGLang launch/supervision and the KV, RadixAttention, and Attention experiment entrypoints are implemented locally but have not yet been run on the Daytona GPU. Baseline/optimized profile values, GPU evidence, and official soft/GPU evaluation remain outstanding. Tenant administration, key rotation/revocation, metering, quotas, the working console, and a first Agent runner are implemented locally but still need the official checker and broader concurrency/recovery coverage.
 
 ## Project layout mapping
 
@@ -33,7 +33,7 @@ This is an in-progress implementation, not a completed OpenLabs submission. SGLa
 | Profile configuration | `configs/baseline.yaml` and `configs/optimized.yaml`; both are marked pending GPU validation and cannot yet launch a measured profile |
 | Experimental pricing | `configs/pricing.json`; CPU fixture accounting only, not a commercial price |
 | CPU/API and storage verification | `tests/`; public service-level control-plane checker is still pending |
-| Performance method and evidence | `docs/performance.md` records pending work; benchmark and experiment tools/results are still missing |
+| Performance method and evidence | `docs/performance.md`, `experiments/`; implementations exist, but no GPU measurements or results are recorded yet |
 
 The taskbook layout is the target. This table records current path differences; it does not mark missing modules or measurements as complete.
 

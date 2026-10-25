@@ -12,8 +12,8 @@ fi
 if [[ "${mode}" == "--stop" ]]; then
   data_dir="${DATA_DIR:-}"
   if [[ -z "${data_dir}" ]]; then
-    echo "DATA_DIR is required for --stop" >&2
-    exit 1
+    echo "DATA_DIR is unset; no recorded llm-service process to stop"
+    exit 0
   fi
   if [[ "${data_dir}" != /* || "${data_dir}" == "/" || "${data_dir}" == "${HOME}" || "${data_dir}" == "${PWD}" ]]; then
     echo "DATA_DIR must be a dedicated absolute subdirectory for --stop" >&2
@@ -61,8 +61,19 @@ if [[ "${mode}" == "--stop" ]]; then
 fi
 
 if ! command -v uv >/dev/null 2>&1; then
-  echo "uv is required to install and run llm-service" >&2
-  exit 1
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "curl is required to install uv" >&2
+    exit 1
+  fi
+  uv_install_dir="${UV_INSTALL_DIR:-${HOME}/.local/bin}"
+  echo "uv not found; installing it into ${uv_install_dir}"
+  curl --fail --show-error --silent --location https://astral.sh/uv/install.sh \
+    | env UV_INSTALL_DIR="${uv_install_dir}" UV_NO_MODIFY_PATH=1 sh
+  export PATH="${uv_install_dir}:${PATH}"
+  if ! command -v uv >/dev/null 2>&1; then
+    echo "uv installation completed, but uv is not available in PATH" >&2
+    exit 1
+  fi
 fi
 
 for required_name in API_KEY KEY_HASH_SECRET DATA_DIR MODEL_ID MODEL_REVISION; do

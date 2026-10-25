@@ -18,10 +18,11 @@ currently mark this calibration as pending and leave `max_total_tokens` unset.
 
 The taskbook requires repeatable KV cache on/off, prefix cache on/off, and
 math/FlashAttention comparisons with raw records, manifests, correctness checks,
-and generated summaries. The `experiments/` entrypoint and those experiment
-implementations have not been added yet. Once run, link the exact commit and
-unmodified evidence files here; do not substitute the public practice benchmark
-or CPU fixture results for GPU performance measurements.
+and generated summaries. The three experiment implementations and
+`experiments/run.sh` entrypoint are now present. They have not yet been run on a
+GPU, so no measurements or pass results are recorded here. Once run, link the
+exact commit and unmodified evidence files; do not substitute the public practice
+benchmark or CPU fixture results for GPU performance measurements.
 
 ## Frozen performance targets
 
