@@ -34,6 +34,8 @@ async def run_agent(
         payload = await request.json()
     except (ValueError, UnicodeDecodeError):
         return _error_response(400, "invalid_json", "Request body must be valid JSON")
+    if isinstance(payload, dict) and any(field in payload for field in ("tenant_id", "user_id", "key_id")):
+        return _error_response(400, "invalid_agent_request", "Tenant identity comes from the API key")
     if not isinstance(payload, dict) or payload.get("task") is None or payload.get("tool_data") is None:
         return _error_response(422, "invalid_agent_request", "task and tool_data are required")
     task = payload["task"]

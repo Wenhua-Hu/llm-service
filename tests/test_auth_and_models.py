@@ -41,6 +41,35 @@ def test_models_accepts_valid_key() -> None:
     }
 
 
+def test_usage_rejects_tenant_override_inputs() -> None:
+    query_override = client.get(
+        "/v1/usage?tenant_id=another-tenant",
+        headers={"Authorization": "Bearer test-api-key"},
+    )
+    header_override = client.get(
+        "/v1/usage",
+        headers={
+            "Authorization": "Bearer test-api-key",
+            "X-Tenant-ID": "another-tenant",
+        },
+    )
+
+    assert query_override.status_code == 403
+    assert header_override.status_code == 403
+
+
+def test_inference_routes_reject_tenant_override_headers() -> None:
+    response = client.get(
+        "/v1/models",
+        headers={
+            "Authorization": "Bearer test-api-key",
+            "X-Tenant-ID": "another-tenant",
+        },
+    )
+
+    assert response.status_code == 403
+
+
 def test_info_is_not_public() -> None:
     response = client.get("/info")
 

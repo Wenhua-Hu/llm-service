@@ -1,5 +1,6 @@
 """FastAPI application for the LLM service gateway."""
 
+import asyncio
 from pathlib import Path
 
 import httpx
@@ -131,6 +132,8 @@ def create_app(
             return _error_response(400, "invalid_json", "Request body must be valid JSON")
         if not isinstance(payload, dict):
             return _error_response(400, "invalid_request", "Request body must be a JSON object")
+        if any(field in payload for field in ("tenant_id", "user_id", "key_id")):
+            return _error_response(400, "invalid_request", "Tenant identity comes from the API key")
         if payload.get("model") not in {None, settings.model_id}:
             return _error_response(404, "model_not_found", "Requested model is not available")
         if not settings.engine_base_url:
@@ -215,6 +218,7 @@ def create_app(
 
             async def relay() -> object:
                 completed = False
+                client_cancelled = False
                 parser = SSEUsageParser()
                 usage_recorded = False
                 try:
@@ -230,6 +234,9 @@ def create_app(
                         yield chunk
                     if not completed:
                         yield _sse_error("engine_stream_incomplete", "Inference stream ended before [DONE]")
+                except asyncio.CancelledError:
+                    client_cancelled = True
+                    raise
                 except httpx.HTTPError:
                     yield _sse_error("engine_stream_error", "Inference stream was interrupted")
                 finally:
@@ -238,6 +245,8 @@ def create_app(
                             settlement = store.settle_request(request_id)
                             if settlement["status"] == "settled":
                                 await app.state.metrics.increment("completed")
+                        elif client_cancelled:
+                            store.mark_cancelled_unknown(request_id, "client_cancelled_without_usage")
                         else:
                             store.mark_pending_reconciliation(request_id, "stream_ended_without_usage")
                         if not completed:
@@ -317,14 +326,16 @@ def create_app(
         )
 
     @app.get("/v1/usage")
-    async def own_usage(request: Request) -> dict[str, object]:
+    async def own_usage(request: Request) -> Response:
+        if "tenant_id" in request.query_params:
+            return ledger_error(LedgerError(403, "tenant_override_forbidden"))
         auth = request.state.auth
         result = store.usage(auth["tenant_id"])
         tenant = next(
             item for item in store.list_tenants() if item["tenant_id"] == auth["tenant_id"]
         )
         result["summary"]["balance_micro_usd"] = tenant["balance_micro_usd"]
-        return result
+        return JSONResponse(content=result)
 
     app.include_router(create_admin_router(store, settings.model_id))
     return app

@@ -189,6 +189,17 @@ def test_chat_completions_reports_missing_engine_without_fabricating_usage() -> 
     }
 
 
+def test_chat_completions_rejects_client_tenant_identity() -> None:
+    response = client.post(
+        "/v1/chat/completions",
+        headers=VALID_KEY,
+        json={"model": "test-model", "messages": [], "tenant_id": "another-tenant"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "invalid_request"
+
+
 def test_chat_completions_rejects_unknown_model_before_engine_call() -> None:
     response = client.post(
         "/v1/chat/completions",
@@ -232,6 +243,39 @@ def test_nonstream_completion_is_forwarded_and_engine_usage_is_preserved(monkeyp
     assert usage["summary"]["output_tokens"] == 2
     assert usage["summary"]["cost_micro_usd"] == 18
     assert usage["summary"]["reserved_micro_usd"] == 0
+
+
+def test_second_key_cannot_bypass_shared_token_quota(monkeypatch, tmp_path) -> None:
+    engine_api, _ = engine_client(tmp_path)
+    store = engine_api.app.state.store
+    tenant = store.create_tenant(
+        name="Shared token quota",
+        balance_micro_usd=10000,
+        token_limit=10,
+        rpm_limit=100,
+        concurrency_limit=10,
+    )
+    key_a = store.create_key(tenant["tenant_id"], name="key A")["api_key"]
+    key_b = store.create_key(tenant["tenant_id"], name="key B")["api_key"]
+    calls: list[dict[str, object]] = []
+    monkeypatch.setattr(
+        gateway_module,
+        "httpx",
+        type("HttpxWithFakeClient", (), {
+            "AsyncClient": lambda *args, **kwargs: FakeEngineClient(*args, calls=calls, **kwargs)
+        }),
+    )
+    monkeypatch.setattr(engine_module, "httpx", gateway_module.httpx)
+    body = {"model": "test-model", "messages": [], "max_tokens": 5}
+
+    first = engine_api.post("/v1/chat/completions", headers={"Authorization": f"Bearer {key_a}"}, json=body)
+    second = engine_api.post("/v1/chat/completions", headers={"Authorization": f"Bearer {key_b}"}, json=body)
+
+    assert first.status_code == 200
+    assert second.status_code == 402
+    assert second.json()["error"]["code"] == "insufficient_quota"
+    usage = engine_api.get("/v1/usage", headers={"Authorization": f"Bearer {key_b}"}).json()
+    assert usage["summary"]["total_tokens"] == 5
 
 
 def test_sse_completion_relays_events_and_done_without_buffer_rewrite(monkeypatch, tmp_path) -> None:

@@ -80,6 +80,51 @@ def test_idempotency_prevents_duplicate_generation_and_body_reuse_conflicts(tmp_
     assert completed.value.code == "request_already_completed"
 
 
+def test_token_quota_is_shared_by_all_keys_and_reports_total_tokens(tmp_path: Path) -> None:
+    store = make_store(tmp_path / "state")
+    tenant = store.create_tenant(
+        name="Shared quota",
+        balance_micro_usd=10000,
+        token_limit=150,
+        rpm_limit=100,
+        concurrency_limit=10,
+    )
+    key_a = store.create_key(tenant["tenant_id"], name="key A")["api_key"]
+    key_b = store.create_key(tenant["tenant_id"], name="key B")["api_key"]
+    auth_a, auth_b = store.authenticate(key_a), store.authenticate(key_b)
+    first = reserve(store, auth_a, {"messages": []})
+    store.journal_usage(first["request_id"], 100, 50)
+    store.settle_request(first["request_id"])
+
+    with pytest.raises(LedgerError) as caught:
+        reserve(store, auth_b, {"messages": []})
+
+    assert caught.value.status == 402
+    assert store.usage(tenant["tenant_id"])["summary"]["total_tokens"] == 150
+
+
+def test_cancelled_unknown_usage_releases_concurrency_but_keeps_reservation(tmp_path: Path) -> None:
+    store = make_store(tmp_path / "state")
+    tenant = store.create_tenant(
+        name="Cancellation",
+        balance_micro_usd=10000,
+        token_limit=10000,
+        rpm_limit=100,
+        concurrency_limit=1,
+    )
+    auth = store.authenticate(store.create_key(tenant["tenant_id"], name="key")["api_key"])
+    cancelled = reserve(store, auth, {"messages": [{"content": "first"}]})
+    store.mark_engine_started(cancelled["request_id"])
+    store.mark_cancelled_unknown(cancelled["request_id"], "client_cancelled_without_usage")
+
+    following = reserve(store, auth, {"messages": [{"content": "second"}]})
+    usage = store.usage(tenant["tenant_id"])
+
+    assert following["request_id"] != cancelled["request_id"]
+    assert usage["items"][1]["status"] == "cancelled_unknown"
+    assert usage["summary"]["reserved_micro_usd"] == 1000
+
+
 def test_usage_above_reservation_is_not_settled_or_fabricated(tmp_path: Path) -> None:
     store = make_store(tmp_path / "state")
     auth = create_tenant_and_auth(store)
@@ -155,6 +200,7 @@ def test_crash_recovery_releases_old_unknown_usage_with_audit(tmp_path: Path) ->
     store = make_store(state)
     auth = create_tenant_and_auth(store)
     reservation = reserve(store, auth, {"messages": []})
+    balance_before_restart = store.usage(auth["tenant_id"])["summary"]["balance_micro_usd"]
     with store.transaction() as database:
         database.execute(
             "UPDATE requests SET created_epoch=created_epoch-61 WHERE request_id=?",
@@ -165,11 +211,26 @@ def test_crash_recovery_releases_old_unknown_usage_with_audit(tmp_path: Path) ->
     usage = restarted.usage(auth["tenant_id"])
 
     assert usage["summary"]["reserved_micro_usd"] == 0
+    assert usage["summary"]["balance_micro_usd"] == balance_before_restart
     assert usage["items"][0]["status"] == "reconciled_unknown"
     assert usage["items"][0]["input_tokens"] is None
     with restarted.connection() as database:
         adjustment = database.execute(
-            "SELECT reason FROM adjustments WHERE idempotency_key=?",
+            "SELECT reason,delta_micro_usd FROM adjustments WHERE idempotency_key=?",
             (f"recovery:{reservation['request_id']}",),
         ).fetchone()
     assert adjustment["reason"] == "recovery_release_unknown_usage"
+    assert adjustment["delta_micro_usd"] == 0
+
+
+def test_restart_immediately_reconciles_recent_unknown_usage(tmp_path: Path) -> None:
+    state = tmp_path / "state"
+    store = make_store(state)
+    auth = create_tenant_and_auth(store)
+    reserve(store, auth, {"messages": []})
+
+    restarted = make_store(state)
+
+    usage = restarted.usage(auth["tenant_id"])
+    assert usage["summary"]["reserved_micro_usd"] == 0
+    assert usage["items"][0]["status"] == "reconciled_unknown"

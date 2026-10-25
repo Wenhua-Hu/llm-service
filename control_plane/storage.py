@@ -114,7 +114,7 @@ class Store:
                     name="Bootstrap benchmark",
                     raw_key=bootstrap_key,
                 )
-        self.recover_incomplete_requests()
+        self.recover_incomplete_requests(force=True)
 
     @staticmethod
     def _new_api_key() -> str:
@@ -173,7 +173,7 @@ class Store:
                           COALESCE(SUM(CASE WHEN r.status='settled'
                             THEN COALESCE(r.input_tokens,0)+COALESCE(r.output_tokens,0)
                             ELSE 0 END),0) AS used_tokens,
-                          COALESCE(SUM(CASE WHEN r.status IN ('reserved','running','pending_reconciliation')
+                          COALESCE(SUM(CASE WHEN r.status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
                             THEN r.reserved_input+r.reserved_output ELSE 0 END),0) AS reserved_tokens
                    FROM tenants t LEFT JOIN requests r USING(tenant_id)
                    GROUP BY t.tenant_id ORDER BY t.created_at,t.tenant_id"""
@@ -433,9 +433,9 @@ class Store:
             )
             current = database.execute(
                 """SELECT COALESCE(SUM(input_tokens+output_tokens),0) AS used_tokens,
-                          COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation')
+                          COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
                             THEN reserved_input+reserved_output ELSE 0 END),0) AS reserved_tokens,
-                          COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation')
+                          COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
                             THEN reserved_micro_usd ELSE 0 END),0) AS reserved_cost,
                           COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation') THEN 1 ELSE 0 END),0) AS inflight,
                           COALESCE(SUM(CASE WHEN created_epoch>=? THEN 1 ELSE 0 END),0) AS recent_requests
@@ -481,6 +481,16 @@ class Store:
         with self.transaction() as database:
             database.execute(
                 """UPDATE requests SET status='pending_reconciliation',error_code=?
+                   WHERE request_id=? AND status IN ('reserved','running')""",
+                (error_code, request_id),
+            )
+
+    def mark_cancelled_unknown(self, request_id: str, error_code: str) -> None:
+        """Keep unknown usage auditable while freeing the tenant concurrency slot."""
+
+        with self.transaction() as database:
+            database.execute(
+                """UPDATE requests SET status='cancelled_unknown',error_code=?
                    WHERE request_id=? AND status IN ('reserved','running')""",
                 (error_code, request_id),
             )
@@ -564,24 +574,20 @@ class Store:
             )
         return {"request_id": request_id, "status": "settled", "cost_micro_usd": cost}
 
-    def reconcile_unknown(self, request_id: str) -> bool:
+    def reconcile_unknown(self, request_id: str, *, force: bool = False) -> bool:
         with self.transaction() as database:
             row = database.execute(
                 """SELECT tenant_id,status,reserved_micro_usd,created_epoch,usage_evidence
                    FROM requests WHERE request_id=?""",
                 (request_id,),
             ).fetchone()
-            if not row or row["status"] not in {"reserved", "running", "pending_reconciliation"}:
+            if not row or row["status"] not in {"reserved", "running", "pending_reconciliation", "cancelled_unknown"}:
                 return False
             if row["usage_evidence"] is not None:
                 return False
-            if time.time() - row["created_epoch"] < 60:
+            if not force and time.time() - row["created_epoch"] < 60:
                 return False
             released = row["reserved_micro_usd"]
-            database.execute(
-                "UPDATE tenants SET balance_micro_usd=balance_micro_usd+? WHERE tenant_id=?",
-                (released, row["tenant_id"]),
-            )
             database.execute(
                 """UPDATE requests SET status='reconciled_unknown',reserved_input=0,
                           reserved_output=0,reserved_micro_usd=0,error_code='usage_unknown',finished_at=?
@@ -596,7 +602,7 @@ class Store:
                     adjustment_id,tenant_id,delta_micro_usd,reason,idempotency_key,
                     body_hash,response_json,created_at
                 ) VALUES(?,?,?,?,?,?,?,?)""",
-                (adjustment_id, row["tenant_id"], released, "recovery_release_unknown_usage", idem,
+                (adjustment_id, row["tenant_id"], 0, "recovery_release_unknown_usage", idem,
                  hashlib.sha256(json.dumps(detail, sort_keys=True).encode()).hexdigest(),
                  json.dumps(detail, sort_keys=True), utc_now()),
             )
@@ -606,16 +612,16 @@ class Store:
             )
         return True
 
-    def recover_incomplete_requests(self) -> None:
+    def recover_incomplete_requests(self, *, force: bool = False) -> None:
         with self.connection() as database:
             rows = database.execute(
-                "SELECT request_id,usage_evidence FROM requests WHERE status IN ('reserved','running','pending_reconciliation')"
+                "SELECT request_id,usage_evidence FROM requests WHERE status IN ('reserved','running','pending_reconciliation','cancelled_unknown')"
             ).fetchall()
         for row in rows:
             if row["usage_evidence"]:
                 self.settle_request(row["request_id"])
             else:
-                self.reconcile_unknown(row["request_id"])
+                self.reconcile_unknown(row["request_id"], force=force)
 
     @staticmethod
     def _epoch_bound(value: str | None, label: str) -> float | None:
@@ -698,7 +704,7 @@ class Store:
                 f"""SELECT COALESCE(SUM(input_tokens),0) AS input_tokens,
                            COALESCE(SUM(output_tokens),0) AS output_tokens,
                            COALESCE(SUM(cost_micro_usd),0) AS cost_micro_usd,
-                           COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation')
+                           COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
                              THEN reserved_micro_usd ELSE 0 END),0) AS reserved_micro_usd
                     FROM requests {where}""",
                 tuple(params),
@@ -724,6 +730,7 @@ class Store:
             else None
         )
         summary: dict[str, object] = dict(totals)
+        summary["total_tokens"] = totals["input_tokens"] + totals["output_tokens"]
         if tenant_id_value is not None:
             summary["balance_micro_usd"] = balance
         items = [
