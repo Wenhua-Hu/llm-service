@@ -59,6 +59,32 @@ def test_reservation_settles_exact_usage_and_releases_unused_amount(tmp_path: Pa
     assert store.usage(auth["tenant_id"])["summary"]["cost_micro_usd"] == 500
 
 
+def test_reservation_debits_available_balance_and_settlement_refunds_unused_amount(tmp_path: Path) -> None:
+    store = make_store(tmp_path / "state")
+    auth = create_tenant_and_auth(store)
+    balance = store.usage(auth["tenant_id"])["summary"]["balance_micro_usd"]
+    reservation = reserve(store, auth, {"messages": []})
+
+    assert store.usage(auth["tenant_id"])["summary"]["balance_micro_usd"] == balance - 500
+    store.journal_usage(reservation["request_id"], 100, 25)
+    store.settle_request(reservation["request_id"])
+
+    assert store.usage(auth["tenant_id"])["summary"]["balance_micro_usd"] == balance - 350
+
+
+def test_confirmed_engine_rejection_releases_balance_reservation(tmp_path: Path) -> None:
+    store = make_store(tmp_path / "state")
+    auth = create_tenant_and_auth(store)
+    balance = store.usage(auth["tenant_id"])["summary"]["balance_micro_usd"]
+    reservation = reserve(store, auth, {"messages": []})
+
+    store.release_request(reservation["request_id"], "engine_rejected_request")
+
+    usage = store.usage(auth["tenant_id"])
+    assert usage["summary"]["balance_micro_usd"] == balance
+    assert usage["summary"]["reserved_micro_usd"] == 0
+
+
 def test_idempotency_prevents_duplicate_generation_and_body_reuse_conflicts(tmp_path: Path) -> None:
     store = make_store(tmp_path / "state")
     auth = create_tenant_and_auth(store)
@@ -211,7 +237,7 @@ def test_crash_recovery_releases_old_unknown_usage_with_audit(tmp_path: Path) ->
     usage = restarted.usage(auth["tenant_id"])
 
     assert usage["summary"]["reserved_micro_usd"] == 0
-    assert usage["summary"]["balance_micro_usd"] == balance_before_restart
+    assert usage["summary"]["balance_micro_usd"] == balance_before_restart + reservation["reserved_micro_usd"]
     assert usage["items"][0]["status"] == "reconciled_unknown"
     assert usage["items"][0]["input_tokens"] is None
     with restarted.connection() as database:
@@ -220,7 +246,7 @@ def test_crash_recovery_releases_old_unknown_usage_with_audit(tmp_path: Path) ->
             (f"recovery:{reservation['request_id']}",),
         ).fetchone()
     assert adjustment["reason"] == "recovery_release_unknown_usage"
-    assert adjustment["delta_micro_usd"] == 0
+    assert adjustment["delta_micro_usd"] == reservation["reserved_micro_usd"]
 
 
 def test_restart_immediately_reconciles_recent_unknown_usage(tmp_path: Path) -> None:
@@ -233,4 +259,5 @@ def test_restart_immediately_reconciles_recent_unknown_usage(tmp_path: Path) -> 
 
     usage = restarted.usage(auth["tenant_id"])
     assert usage["summary"]["reserved_micro_usd"] == 0
+    assert usage["summary"]["balance_micro_usd"] == 10000
     assert usage["items"][0]["status"] == "reconciled_unknown"

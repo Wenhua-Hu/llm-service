@@ -70,6 +70,15 @@ def test_inference_routes_reject_tenant_override_headers() -> None:
     assert response.status_code == 403
 
 
+def test_inference_routes_reject_tenant_override_query_parameters() -> None:
+    response = client.get(
+        "/v1/models?tenant_id=another-tenant",
+        headers={"Authorization": "Bearer test-api-key"},
+    )
+
+    assert response.status_code == 403
+
+
 def test_info_is_not_public() -> None:
     response = client.get("/info")
 

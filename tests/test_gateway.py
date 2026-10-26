@@ -1,3 +1,4 @@
+import asyncio
 import json
 from pathlib import Path
 
@@ -345,6 +346,86 @@ def test_incomplete_sse_requests_engine_abort_for_same_request_id(monkeypatch, t
     usage = engine_api.get("/v1/usage", headers=engine_auth).json()
     assert usage["items"][0]["status"] == "pending_reconciliation"
     assert usage["items"][0]["cost_micro_usd"] is None
+
+
+def test_client_disconnect_aborts_and_releases_tenant_slot(monkeypatch, tmp_path) -> None:
+    engine_api, _ = engine_client(tmp_path)
+    store = engine_api.app.state.store
+    tenant = store.create_tenant(
+        name="Disconnect",
+        balance_micro_usd=10000,
+        token_limit=10000,
+        rpm_limit=100,
+        concurrency_limit=1,
+    )
+    api_key = store.create_key(tenant["tenant_id"], name="disconnect key")["api_key"]
+    calls: list[dict[str, object]] = []
+    stream_body = b'data: {"choices":[{"delta":{"content":"first"}}]}\n\n'
+    monkeypatch.setattr(
+        gateway_module,
+        "httpx",
+        type("HttpxWithFakeClient", (), {
+            "AsyncClient": lambda *args, **kwargs: FakeEngineClient(
+                *args, calls=calls, stream_body=stream_body, **kwargs
+            )
+        }),
+    )
+    monkeypatch.setattr(engine_module, "httpx", gateway_module.httpx)
+    body = json.dumps({"model": "test-model", "messages": [], "stream": True, "max_tokens": 1}).encode()
+    scope = {
+        "type": "http",
+        "asgi": {"version": "3.0", "spec_version": "2.4"},
+        "http_version": "1.1",
+        "method": "POST",
+        "scheme": "http",
+        "path": "/v1/chat/completions",
+        "raw_path": b"/v1/chat/completions",
+        "query_string": b"",
+        "root_path": "",
+        "headers": [
+            (b"host", b"testserver"),
+            (b"authorization", f"Bearer {api_key}".encode()),
+            (b"content-type", b"application/json"),
+            (b"content-length", str(len(body)).encode()),
+        ],
+        "client": ("testclient", 50000),
+        "server": ("testserver", 80),
+    }
+    received_request = False
+    response_chunks = 0
+
+    async def receive():
+        nonlocal received_request
+        if not received_request:
+            received_request = True
+            return {"type": "http.request", "body": body, "more_body": False}
+        return {"type": "http.disconnect"}
+
+    async def send(message):
+        nonlocal response_chunks
+        if message["type"] == "http.response.body" and message.get("body"):
+            response_chunks += 1
+            raise OSError("simulated client disconnect")
+
+    async def run_disconnected_request():
+        try:
+            await engine_api.app(scope, receive, send)
+        except Exception as error:
+            assert "disconnect" in str(error).lower()
+
+    asyncio.run(run_disconnected_request())
+
+    usage = store.usage(tenant["tenant_id"])
+    assert response_chunks == 1
+    assert usage["items"][0]["status"] == "cancelled_unknown"
+    assert any(call["url"].endswith("/abort_request") for call in calls)
+
+    following = engine_api.post(
+        "/v1/chat/completions",
+        headers={"Authorization": f"Bearer {api_key}"},
+        json={"model": "test-model", "messages": [], "stream": True, "max_tokens": 1},
+    )
+    assert following.status_code == 200
 
 
 def test_sse_usage_parser_handles_fragmented_crlf_events() -> None:

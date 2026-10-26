@@ -237,6 +237,11 @@ def create_app(
                 except asyncio.CancelledError:
                     client_cancelled = True
                     raise
+                except GeneratorExit:
+                    # StreamingResponse closes this generator when its send fails
+                    # after the client disconnects.
+                    client_cancelled = True
+                    raise
                 except httpx.HTTPError:
                     yield _sse_error("engine_stream_error", "Inference stream was interrupted")
                 finally:
@@ -327,8 +332,6 @@ def create_app(
 
     @app.get("/v1/usage")
     async def own_usage(request: Request) -> Response:
-        if "tenant_id" in request.query_params:
-            return ledger_error(LedgerError(403, "tenant_override_forbidden"))
         auth = request.state.auth
         result = store.usage(auth["tenant_id"])
         tenant = next(

@@ -435,8 +435,6 @@ class Store:
                 """SELECT COALESCE(SUM(input_tokens+output_tokens),0) AS used_tokens,
                           COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
                             THEN reserved_input+reserved_output ELSE 0 END),0) AS reserved_tokens,
-                          COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation','cancelled_unknown')
-                            THEN reserved_micro_usd ELSE 0 END),0) AS reserved_cost,
                           COALESCE(SUM(CASE WHEN status IN ('reserved','running','pending_reconciliation') THEN 1 ELSE 0 END),0) AS inflight,
                           COALESCE(SUM(CASE WHEN created_epoch>=? THEN 1 ELSE 0 END),0) AS recent_requests
                    FROM requests WHERE tenant_id=?""",
@@ -448,8 +446,12 @@ class Store:
                 raise LedgerError(429, "rpm_limit")
             if current["used_tokens"] + current["reserved_tokens"] + input_tokens + max_output_tokens > tenant["token_limit"]:
                 raise LedgerError(402, "insufficient_quota")
-            if tenant["balance_micro_usd"] - current["reserved_cost"] < reserved_cost:
+            if tenant["balance_micro_usd"] < reserved_cost:
                 raise LedgerError(402, "insufficient_quota")
+            database.execute(
+                "UPDATE tenants SET balance_micro_usd=balance_micro_usd-? WHERE tenant_id=?",
+                (reserved_cost, tenant_id),
+            )
             database.execute(
                 """INSERT INTO requests(
                     request_id,tenant_id,key_id,parent_request_id,route,model,body_hash,
@@ -499,6 +501,16 @@ class Store:
         """Release a reservation only when the engine confirms it did no generation."""
 
         with self.transaction() as database:
+            row = database.execute(
+                "SELECT tenant_id,reserved_micro_usd FROM requests WHERE request_id=? AND status IN ('reserved','running') AND usage_evidence IS NULL",
+                (request_id,),
+            ).fetchone()
+            if not row:
+                return
+            database.execute(
+                "UPDATE tenants SET balance_micro_usd=balance_micro_usd+? WHERE tenant_id=?",
+                (row["reserved_micro_usd"], row["tenant_id"]),
+            )
             database.execute(
                 """UPDATE requests SET status='failed',error_code=?,reserved_input=0,
                           reserved_output=0,reserved_micro_usd=0,finished_at=?
@@ -559,8 +571,8 @@ class Store:
                     "error_code": "usage_exceeds_reservation",
                 }
             database.execute(
-                "UPDATE tenants SET balance_micro_usd=balance_micro_usd-? WHERE tenant_id=?",
-                (cost, request["tenant_id"]),
+                "UPDATE tenants SET balance_micro_usd=balance_micro_usd+? WHERE tenant_id=?",
+                (request["reserved_micro_usd"] - cost, request["tenant_id"]),
             )
             database.execute(
                 """UPDATE requests SET status='settled',cost_micro_usd=?,
@@ -589,6 +601,10 @@ class Store:
                 return False
             released = row["reserved_micro_usd"]
             database.execute(
+                "UPDATE tenants SET balance_micro_usd=balance_micro_usd+? WHERE tenant_id=?",
+                (released, row["tenant_id"]),
+            )
+            database.execute(
                 """UPDATE requests SET status='reconciled_unknown',reserved_input=0,
                           reserved_output=0,reserved_micro_usd=0,error_code='usage_unknown',finished_at=?
                    WHERE request_id=?""",
@@ -602,7 +618,7 @@ class Store:
                     adjustment_id,tenant_id,delta_micro_usd,reason,idempotency_key,
                     body_hash,response_json,created_at
                 ) VALUES(?,?,?,?,?,?,?,?)""",
-                (adjustment_id, row["tenant_id"], 0, "recovery_release_unknown_usage", idem,
+                (adjustment_id, row["tenant_id"], released, "recovery_release_unknown_usage", idem,
                  hashlib.sha256(json.dumps(detail, sort_keys=True).encode()).hexdigest(),
                  json.dumps(detail, sort_keys=True), utc_now()),
             )

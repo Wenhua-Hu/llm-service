@@ -44,7 +44,11 @@ def install_authentication(app, store: Store, admin_api_key: str = "") -> None:
                         return ledger_error(error)
                     return ledger_error(LedgerError(403, "admin_required"))
             else:
-                if request.headers.get("X-Tenant-ID") or request.headers.get("X-User-ID"):
+                if (
+                    "tenant_id" in request.query_params
+                    or request.headers.get("X-Tenant-ID")
+                    or request.headers.get("X-User-ID")
+                ):
                     return ledger_error(LedgerError(403, "tenant_override_forbidden"))
                 try:
                     request.state.auth = store.authenticate(raw_key)
